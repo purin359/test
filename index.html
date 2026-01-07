@@ -86,6 +86,23 @@ select, input, button { width:100%; font-size:1.1em; padding:10px; margin:8px 0;
 </div>
 
 <script>
+function loadAttackData(key){
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return { score: 0, time: 0, clears: 0 };
+
+    const d = JSON.parse(raw);
+    return {
+      score: Number(d.score) || 0,
+      time: Number(d.time) || 0,
+      clears: Number(d.clears) || 0
+    };
+  } catch (e) {
+    // 壊れていたら初期化
+    return { score: 0, time: 0, clears: 0 };
+  }
+}
+
 let pokemon = {};
 let numbers = [];
 let currentNumber = null;
@@ -95,6 +112,16 @@ let limit = 30;
 let score = 0;
 let elapsed = 0;
 let attackTimer = null;
+
+function saveAttackData(key, data){
+  const safe = {
+    score: Math.max(0, Number(data.score) || 0),
+    time: Math.max(0, Number(data.time) || 0),
+    clears: Math.max(0, Number(data.clears) || 0)
+  };
+
+  localStorage.setItem(key, JSON.stringify(safe));
+}
 
 const answer = document.getElementById("answer");
 const timeSelect = document.getElementById("timeSelect");
@@ -226,8 +253,10 @@ bestContainer.style.display = "block";
 
   // タイムアタックのリザルト表示
   const key = attackKey();
-const data = JSON.parse(localStorage.getItem(key) ||
-  '{"score":0,"time":0,"clears":0}');
+// 読み込み（回復）
+const data = loadAttackData(key);
+// 保存（予防）
+saveAttackData(key, data);
 
 document.getElementById("bestBody").innerText =
 `スコア：${data.score}/${info.max}
@@ -377,11 +406,11 @@ function gameOver(reason){
       prev.time === 0 ? elapsed : Math.min(prev.time, elapsed);
     const newClears = prev.clears + (cleared ? 1 : 0);
 
-    localStorage.setItem(key, JSON.stringify({
+    saveAttackData(key, {
       score: newScore,
       time: newTime,
       clears: newClears
-    }));
+    });
   }
 
   /* ===== 表示処理 ===== */
@@ -404,3 +433,4 @@ function gameOver(reason){
 </script>
 </body>
 </html>
+
