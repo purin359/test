@@ -29,6 +29,12 @@ select, input, button { width:100%; font-size:1.1em; padding:10px; margin:8px 0;
   <option value="poke2num">ポケモン→番号</option>
 </select>
 
+<label>ルール選択</label>
+<select id="ruleSelect">
+  <option value="endless" selected>エンドレス</option>
+  <option value="timeattack">タイムアタック</option>
+</select>
+
 <label>制限時間</label>
 <select id="timeSelect">
   <option value="0">制限時間なし</option>
@@ -84,15 +90,30 @@ let timer = null;
 let timeLeft = 0;
 let limit = 30;
 let score = 0;
+let elapsed = 0;
+let attackTimer = null;
 
 const answer = document.getElementById("answer");
 const timeSelect = document.getElementById("timeSelect");
 const bestContainer = document.getElementById("bestContainer");
 const modeSelect = document.getElementById("modeSelect");
+const ruleSelect = document.getElementById("ruleSelect");
 const genCheckboxes = document.querySelectorAll(".gen-container input[type='checkbox']");
 const messageDiv = document.getElementById("message");
 timeSelect.addEventListener("change", () => {
   limit = Number(timeSelect.value);
+  updateBest();
+});
+ruleSelect.addEventListener("change", () => {
+  if (ruleSelect.value === "timeattack") {
+    // タイムアタック
+    timeSelect.parentElement.classList.add("hidden");
+    limit = 0; // エンドレス用制限は使わない
+  } else {
+    // エンドレス
+    timeSelect.parentElement.classList.remove("hidden");
+    limit = Number(timeSelect.value);
+  }
   updateBest();
 });
 
@@ -155,11 +176,28 @@ genCheckboxes.forEach(cb=>cb.addEventListener("change", ()=>{
 
 // ゲーム開始
 function startGame(){
-  score=0;
-  limit=Number(timeSelect.value);
-  document.getElementById("score").textContent=score;
+  score = 0;
+  elapsed = 0;
+
+  document.getElementById("score").textContent = score;
   document.getElementById("game").classList.remove("hidden");
-  messageDiv.textContent="";
+  messageDiv.textContent = "";
+
+  clearInterval(timer);
+  clearInterval(attackTimer);
+
+  if (ruleSelect.value === "timeattack") {
+    // タイムアタック：1秒から計測
+    document.getElementById("timer").textContent = "0";
+    attackTimer = setInterval(() => {
+      elapsed++;
+      document.getElementById("timer").textContent = elapsed;
+    }, 1000);
+  } else {
+    // エンドレス
+    limit = Number(timeSelect.value);
+  }
+
   nextQuestion();
 }
 
@@ -169,16 +207,19 @@ function nextQuestion(){
   const {nums} = getSelectedNumbers();
   if(nums.length===0){ alert("世代を選択してください"); return; }
 
-  if(limit===0) document.getElementById("timer").textContent="∞";
-  else{
-    timeLeft=limit;
-    document.getElementById("timer").textContent=timeLeft;
-    timer=setInterval(()=>{
+  if (ruleSelect.value === "endless") {
+  if(limit===0){
+    document.getElementById("timer").textContent="∞";
+  } else{
+    timeLeft = limit;
+    document.getElementById("timer").textContent = timeLeft;
+    timer = setInterval(()=>{
       timeLeft--;
-      document.getElementById("timer").textContent=timeLeft;
+      document.getElementById("timer").textContent = timeLeft;
       if(timeLeft<=0) gameOver("時間切れ！");
     },1000);
   }
+}
 
   currentNumber=nums[Math.floor(Math.random()*nums.length)];
   document.getElementById("number").textContent = modeSelect.value==="num2poke"?currentNumber:pokemon[currentNumber];
@@ -209,6 +250,7 @@ function giveUp(){ gameOver("ギブアップ！"); }
 // ゲームオーバー
 function gameOver(reason){
   clearInterval(timer);
+  clearInterval(attackTimer);
   const {allChecked} = getSelectedNumbers();
   let bests=[0,0,0];
   if(allChecked){
@@ -230,3 +272,4 @@ function gameOver(reason){
 </script>
 </body>
 </html>
+
