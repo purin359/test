@@ -198,14 +198,14 @@ fetch("pokemon.json").then(r=>r.json()).then(data=>{
 function updateBest(){
   const {allChecked} = getSelectedNumbers();
 
-  // ===== エンドレスのみ全選択必須 =====
-  if (ruleSelect.value === "endless" && !allChecked) {
-    bestContainer.style.display = "none";
-    return;
-  }
+// エンドレスは「全て」以外非表示
+if (ruleSelect.value === "endless" && !allChecked) {
+  bestContainer.style.display = "none";
+  return;
+}
 
-  // タイムアタック or 全選択エンドレス
-  bestContainer.style.display = "block";
+// タイムアタックは常に表示
+bestContainer.style.display = "block";
   
   // ===== エンドレス =====
   if (ruleSelect.value === "endless") {
@@ -218,31 +218,22 @@ function updateBest(){
     return;
   }
 
- // ===== タイムアタック =====
-const info = getSelectedGenInfo();
-const key = attackKey();
-const data = JSON.parse(
-  localStorage.getItem(key) ||
-  '{"score":0,"time":0,"clears":0}'
-);
+  // ===== タイムアタック =====
+  const info = getSelectedGenInfo();
 
-// 👑：1回以上クリアしている場合のみ
-const crown = data.clears > 0 ? " 👑" : "";
+  document.getElementById("bestTitle").textContent =
+    `${info.name}の最高記録`;
 
-document.getElementById("bestTitle").textContent =
-  `${info.name}の最高記録${crown}`;
+  // タイムアタックのリザルト表示
+  const key = attackKey();
+const data = JSON.parse(localStorage.getItem(key) ||
+  '{"score":0,"time":0,"clears":0}');
 
-// 表示本文を組み立てる
-let body = `スコア：${data.score}/${info.max}`;
-
-// 1回以上クリアしている場合のみ追加表示
-if (data.clears > 0) {
-  body += `
+document.getElementById("bestBody").innerText =
+`スコア：${data.score}/${info.max}
 タイム：${data.time}
 クリア回数：${data.clears}`;
 }
-
-document.getElementById("bestBody").innerText = body;
 
 // 世代チェックトグル
 genCheckboxes.forEach(cb => cb.addEventListener("change", () => {
@@ -355,18 +346,16 @@ function checkAnswer(){
 
 // ギブアップ
 function giveUp(){ gameOver("ギブアップ！"); }
-  
 // ゲームオーバー
 function gameOver(reason){
   clearInterval(timer);
   clearInterval(attackTimer);
 
   const {allChecked} = getSelectedNumbers();
-
-  /* ===== エンドレス最高記録 ===== */
+/* ===== エンドレス最高記録 ===== */
   let bests=[0,0,0];
   if(allChecked){
-     bests = JSON.parse(localStorage.getItem(bestKey())||"[0,0,0]");
+    bests = JSON.parse(localStorage.getItem(bestKey())||"[0,0,0]");
     if(score>bests[0]){bests=[score,bests[0],bests[1]];}
     else if(score>bests[1]){bests=[bests[0],score,bests[1]];}
     else if(score>bests[2]){bests[2]=score;}
