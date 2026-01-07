@@ -36,6 +36,7 @@ select, input, button { width:100%; font-size:1.1em; padding:10px; margin:8px 0;
 </select>
 
 <label>制限時間</label>
+<div id="timeWrapper">
 <select id="timeSelect">
   <option value="0">制限時間なし</option>
   <option value="3">3秒</option>
@@ -46,6 +47,7 @@ select, input, button { width:100%; font-size:1.1em; padding:10px; margin:8px 0;
   <option value="45">45秒</option>
   <option value="60">60秒</option>
 </select>
+</div>
 
 <label>世代選択</label>
 <div class="gen-container">
@@ -106,12 +108,10 @@ timeSelect.addEventListener("change", () => {
 });
 ruleSelect.addEventListener("change", () => {
   if (ruleSelect.value === "timeattack") {
-    // タイムアタック
-    timeSelect.parentElement.classList.add("hidden");
-    limit = 0; // エンドレス用制限は使わない
+    document.getElementById("timeWrapper").classList.add("hidden");
+    limit = 0;
   } else {
-    // エンドレス
-    timeSelect.parentElement.classList.remove("hidden");
+    document.getElementById("timeWrapper").classList.remove("hidden");
     limit = Number(timeSelect.value);
   }
   updateBest();
@@ -272,4 +272,5 @@ function gameOver(reason){
 </script>
 </body>
 </html>
+
 
