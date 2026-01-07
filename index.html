@@ -328,14 +328,16 @@ function startGame(){
   clearInterval(attackTimer);
 
   if (ruleSelect.value === "timeattack") {
-    // タイムアタック：1秒から計測
+    const { nums } = getSelectedNumbers();
+    attackPool = [...nums];          // 出題プール作成
+    totalCount = attackPool.length;  // 最大数を保存
+
     document.getElementById("timer").textContent = "0";
     attackTimer = setInterval(() => {
       elapsed++;
       document.getElementById("timer").textContent = elapsed;
     }, 1000);
   } else {
-    // エンドレス
     limit = Number(timeSelect.value);
   }
 
@@ -345,26 +347,37 @@ function startGame(){
 // 次の問題
 function nextQuestion(){
   clearInterval(timer);
-  const {nums} = getSelectedNumbers();
-  if(nums.length===0){ alert("世代を選択してください"); return; }
 
-  if (ruleSelect.value === "endless") {
-  if(limit===0){
-    document.getElementById("timer").textContent="∞";
-  } else{
-    timeLeft = limit;
-    document.getElementById("timer").textContent = timeLeft;
-    timer = setInterval(()=>{
-      timeLeft--;
-      document.getElementById("timer").textContent = timeLeft;
-      if(timeLeft<=0) gameOver("時間切れ！");
-    },1000);
+  // ===== タイムアタック =====
+  if (ruleSelect.value === "timeattack") {
+
+    // ✅ 全部出し切ったらクリア
+    if (attackPool.length === 0) {
+      gameOver("clear");
+      return;
+    }
+
+    // ランダムで1体取り出して削除
+    const idx = Math.floor(Math.random() * attackPool.length);
+    currentNumber = attackPool.splice(idx, 1)[0];
   }
-}
 
-  currentNumber=nums[Math.floor(Math.random()*nums.length)];
-  document.getElementById("number").textContent = modeSelect.value==="num2poke"?currentNumber:pokemon[currentNumber];
-  answer.value="";
+  // ===== エンドレス =====
+  else {
+    const { nums } = getSelectedNumbers();
+    if(nums.length === 0){
+      alert("世代を選択してください");
+      return;
+    }
+    currentNumber = nums[Math.floor(Math.random()*nums.length)];
+  }
+
+  document.getElementById("number").textContent =
+    modeSelect.value === "num2poke"
+      ? currentNumber
+      : pokemon[currentNumber];
+
+  answer.value = "";
   answer.focus();
 }
 
@@ -445,5 +458,3 @@ function gameOver(reason){
 </script>
 </body>
 </html>
-
-
