@@ -35,18 +35,18 @@ select, input, button { width:100%; font-size:1.1em; padding:10px; margin:8px 0;
   <option value="timeattack">タイムアタック</option>
 </select>
 
-<label>制限時間</label>
 <div id="timeWrapper">
-<select id="timeSelect">
-  <option value="0">制限時間なし</option>
-  <option value="3">3秒</option>
-  <option value="5">5秒</option>
-  <option value="10">10秒</option>
-  <option value="20">20秒</option>
-  <option value="30" selected>30秒</option>
-  <option value="45">45秒</option>
-  <option value="60">60秒</option>
-</select>
+　<label>制限時間選択</label>
+　<select id="timeSelect">
+　  <option value="0">制限時間なし</option>
+ 　 <option value="3">3秒</option>
+　  <option value="5">5秒</option>
+　  <option value="10">10秒</option>
+ 　 <option value="20">20秒</option>
+　  <option value="30" selected>30秒</option>
+　  <option value="45">45秒</option>
+ 　 <option value="60">60秒</option>
+　</select>
 </div>
 
 <label>世代選択</label>
@@ -160,18 +160,38 @@ function updateBest(){
 }
 
 // 世代チェックトグル
-genCheckboxes.forEach(cb=>cb.addEventListener("change", ()=>{
-  const allCb = Array.from(genCheckboxes).find(c=>c.value==='all');
-  setTimeout(()=>{
-    if(cb.value==='all'){
-      const anyChecked = Array.from(genCheckboxes).some(c=>c.value!=='all' && c.checked);
-      if(anyChecked) genCheckboxes.forEach(c=>c.checked=false);
-      else genCheckboxes.forEach(c=>c.checked=true);
-    } else{
-      allCb.checked = Array.from(genCheckboxes).filter(c=>c.value!=='all').every(c=>c.checked);
+genCheckboxes.forEach(cb => cb.addEventListener("change", () => {
+  const allCb = Array.from(genCheckboxes).find(c => c.value === "all");
+
+  // タイムアタック用挙動
+  if (ruleSelect.value === "timeattack") {
+
+    if (cb.value === "all") {
+      // 「全て」を選んだら全部ON
+      genCheckboxes.forEach(c => c.checked = true);
+    } else {
+      // 個別世代を選んだらその1つだけON
+      genCheckboxes.forEach(c => {
+        c.checked = (c === cb);
+      });
     }
-    updateBest();
-  },0);
+
+  } else {
+    // エンドレス（今まで通り）
+    setTimeout(() => {
+      if (cb.value === "all") {
+        const anyChecked = genCheckboxes.some(c => c.value !== "all" && c.checked);
+        if (anyChecked) genCheckboxes.forEach(c => c.checked = false);
+        else genCheckboxes.forEach(c => c.checked = true);
+      } else {
+        allCb.checked = genCheckboxes
+          .filter(c => c.value !== "all")
+          .every(c => c.checked);
+      }
+    }, 0);
+  }
+
+  updateBest();
 }));
 
 // ゲーム開始
@@ -272,5 +292,3 @@ function gameOver(reason){
 </script>
 </body>
 </html>
-
-
