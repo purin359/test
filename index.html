@@ -255,8 +255,6 @@ bestContainer.style.display = "block";
   const key = attackKey();
 // 読み込み（回復）
 const data = loadAttackData(key);
-// 保存（予防）
-saveAttackData(key, data);
 
 document.getElementById("bestBody").innerText =
 `スコア：${data.score}/${info.max}
@@ -433,3 +431,4 @@ function gameOver(reason){
 </script>
 </body>
 </html>
+
