@@ -146,8 +146,15 @@ ruleSelect.addEventListener("change", () => {
     limit = Number(timeSelect.value);
   }
 
+  // リザルトを消す
+  messageDiv.textContent = "";
+  
+  // ルール切替時は世代を必ず全選択に戻す
+  genCheckboxes.forEach(c => c.checked = true);
+  updateBest();
+});
+
   // ゲーム中表示用 0:00:00
-function formatHMS_Game(sec){
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
   const s = sec % 60;
@@ -159,23 +166,19 @@ function formatHMS_Game(sec){
 
   // 1時間以上
   return `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
-}
 
 // リザルト・最高記録用 0時間00分00秒
-function formatHMS_Result(sec){
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
   const s = sec % 60;
-  return `${h}時間${String(m).padStart(2,"0")}分${String(s).padStart(2,"0")}秒`;
+
+  // 1時間未満
+  if (h === 0) {
+    return `${m}分${String(s).padStart(2,"0")}秒`;
 }
 
-  // リザルトを消す
-  messageDiv.textContent = "";
-  
-  // ルール切替時は世代を必ず全選択に戻す
-  genCheckboxes.forEach(c => c.checked = true);
-  updateBest();
-});
+  // 1時間以上
+  return `${h}時間${String(m).padStart(2,"0")}分${String(s).padStart(2,"0")}秒`;
 
 // 日本語正規化
 function normalizeJP(str){
@@ -344,7 +347,7 @@ function startGame(){
     document.getElementById("timer").textContent = formatHMS_Game(elapsed);
     attackTimer = setInterval(() => {
       elapsed++;
-      document.getElementById("timer").textContent = elapsed;
+      document.getElementById("timer").textContent = formatHMS_Game(elapsed);
     }, 1000);
   } else {
     // エンドレス
@@ -483,4 +486,5 @@ function gameOver(reason){
 </script>
 </body>
 </html>
+
 
