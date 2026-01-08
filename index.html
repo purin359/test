@@ -563,16 +563,10 @@ else {
     "⚠ 設定が変更されたためゲームを終了しました";
 }
 
-  // ★ タイムアタック記録を全リセット（1回実行用）
-  Object.keys(localStorage).forEach(key => {
-    if (key.startsWith("pokemon_attack_")) {
-      localStorage.removeItem(key);
-    }
-  });
-
 </script>
 </body>
 </html>
+
 
 
 
