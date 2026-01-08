@@ -190,7 +190,6 @@ ruleSelect.addEventListener("change", () => {
   if (ruleSelect.value === "timeattack") {
     
     document.getElementById("timeWrapper").classList.add("hidden");
-    limit = 0;
   } else {
     
     document.getElementById("timeWrapper").classList.remove("hidden");
@@ -258,6 +257,14 @@ function getSelectedNumbers(){
       }
     }
   });
+
+  // ★ 全てチェック時は全世代
+  if (allChecked) {
+    selected = [];
+    Object.values(genRanges).forEach(([s, e]) => {
+      for (let i = s; i <= e; i++) selected.push(i);
+    });
+  }
 
   return { nums: selected, allChecked };
 }
@@ -328,6 +335,7 @@ bestContainer.style.display = "block";
   }
 
   document.getElementById("bestBody").innerText = body;
+}
 
 // 世代チェックトグル
 genCheckboxes.forEach(cb => cb.addEventListener("change", () => {
@@ -558,6 +566,7 @@ else {
 </script>
 </body>
 </html>
+
 
 
 
