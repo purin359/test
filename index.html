@@ -312,15 +312,22 @@ bestContainer.style.display = "block";
   // 読み込み（回復）
   const data = loadAttackData(key);
 
+  // 👑はクリア済みのみ
   const crown = data.clears > 0 ? " 👑" :"";
   document.getElementById("bestTitle").textContent =
     `${info.name}の最高記録${crown}`;
 
-document.getElementById("bestBody").innerText =
-`スコア：${data.score}/${info.max}
-タイム：${formatHMS_Result(data.time)}
-クリア回数：${data.clears}`;
-}
+  // 表示本文を組み立てる
+  let body = `スコア：${data.score}/${info.max}`;
+
+  // 1回以上クリアしている場合のみ追加
+  if (data.clears > 0) {
+    body += `
+    タイム：${formatHMS_Result(data.time)}
+    クリア回数：${data.clears}`;
+  }
+
+  document.getElementById("bestBody").innerText = body;
 
 // 世代チェックトグル
 genCheckboxes.forEach(cb => cb.addEventListener("change", () => {
@@ -551,5 +558,6 @@ else {
 </script>
 </body>
 </html>
+
 
 
