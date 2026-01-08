@@ -495,27 +495,32 @@ function gameOver(reason){
   }
 
   /* ===== タイムアタック記録 ===== */
-  if (ruleSelect.value === "timeattack") {
-    const key = attackKey();
-    const prev = JSON.parse(
-      localStorage.getItem(key) ||
-      '{"score":0,"time":0,"clears":0}'
-    );
+if (ruleSelect.value === "timeattack") {
+  const key = attackKey();
+  const prev = loadAttackData(key);
 
-    const cleared = reason !== "不正解！" && reason !== "ギブアップ！";
+  // 「全問クリア」のときだけ true
+  const cleared = reason === "🎉 全問クリア！";
 
-    const newScore = Math.max(prev.score, score);
-    const newTime =
+  // スコアは常に最大値
+  const newScore = Math.max(prev.score, score);
+
+  // ★ クリアしたときだけタイム更新 ★
+  let newTime = prev.time;
+  if (cleared) {
+    newTime =
       prev.time === 0 ? elapsed : Math.min(prev.time, elapsed);
-    const newClears = prev.clears + (cleared ? 1 : 0);
-
-    saveAttackData(key, {
-      score: newScore,
-      time: newTime,
-      clears: newClears
-    });
   }
 
+  // クリア回数もクリア時のみ増やす
+  const newClears = prev.clears + (cleared ? 1 : 0);
+
+  saveAttackData(key, {
+    score: newScore,
+    time: newTime,
+    clears: newClears
+  });
+}
   /* ===== 表示処理 ===== */
 const correctAnswer = modeSelect.value==="num2poke"
   ? pokemon[currentNumber]
@@ -566,6 +571,7 @@ else {
 </script>
 </body>
 </html>
+
 
 
 
