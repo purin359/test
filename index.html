@@ -279,6 +279,9 @@ fetch("pokemon.json").then(r=>r.json()).then(data=>{
 }).catch(()=>alert("pokemon.json の読み込みに失敗しました"));
 
 function updateBest(){
+  
+  const rule = ruleSelect.value;
+  
   const {allChecked} = getSelectedNumbers();
 
 // エンドレスは「全て」以外非表示
@@ -309,7 +312,6 @@ bestContainer.style.display = "block";
   // 読み込み（回復）
   const data = loadAttackData(key);
 
-  
   const crown = data.clears > 0 ? " 👑" :"";
   document.getElementById("bestTitle").textContent =
     `${info.name}の最高記録${crown}`;
@@ -549,4 +551,5 @@ else {
 </script>
 </body>
 </html>
+
 
