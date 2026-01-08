@@ -143,6 +143,7 @@ let score = 0;
 let elapsed = 0;
 let attackTimer = null;
 let attackPool = []; // タイムアタック用・残り出題リスト
+let isPlaying = false;
 
 function saveAttackData(key, data){
   const safe = {
@@ -161,11 +162,31 @@ const modeSelect = document.getElementById("modeSelect");
 const ruleSelect = document.getElementById("ruleSelect");
 const genCheckboxes = document.querySelectorAll(".gen-container input[type='checkbox']");
 const messageDiv = document.getElementById("message");
+
+modeSelect.addEventListener("change", () => {
+  if (isPlaying) {
+    forceEndGame();
+    return;
+  }
+  updateBest();
+});
+
 timeSelect.addEventListener("change", () => {
+  if (isPlaying) {
+    forceEndGame();
+    return;
+  }
   limit = Number(timeSelect.value);
   updateBest();
 });
+
 ruleSelect.addEventListener("change", () => {
+
+  if (isPlaying) {
+    forceEndGame();
+    return;
+  }
+  
   if (ruleSelect.value === "timeattack") {
     
     document.getElementById("timeWrapper").classList.add("hidden");
@@ -227,7 +248,13 @@ function getSelectedNumbers(){
   let selected = [];
   let allChecked = true;
 
-  genCheckboxes.forEach(cb => {
+  genCheckboxes.forEach(cb => cd.addEventListener("change", () => {
+
+    if (isPlaying) {
+      forceEndGame();
+      return;
+    }
+    
     if (cb.value !== "all") {
       if (cb.checked) {
         const [s, e] = genRanges[cb.value];
@@ -335,6 +362,7 @@ genCheckboxes.forEach(cb => cb.addEventListener("change", () => {
 
 // ゲーム開始
 function startGame(){
+  isPlaying = true;
   score = 0;
   elapsed = 0;
 
@@ -486,12 +514,21 @@ function gameOver(reason){
   messageDiv.textContent = msg;
   updateBest();
   document.getElementById("game").classList.add("hidden");
+  
+  isPlaying = false;
+}
+
+  // 変更時の強制終了
+  function forceEndGame(){
+  clearInterval(timer);
+  clearInterval(attackTimer);
+  isPlaying = false;
+
+  document.getElementById("game").classList.add("hidden");
+  messageDiv.textContent =
+    "⚠ 設定が変更されたためゲームを終了しました";
 }
 
 </script>
 </body>
 </html>
-
-
-
-
