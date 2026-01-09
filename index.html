@@ -36,17 +36,17 @@ select, input, button { width:100%; font-size:1.1em; padding:10px; margin:8px 0;
 </select>
 
 <div id="timeWrapper">
-　<label>制限時間選択</label>
-　<select id="timeSelect">
-　  <option value="0">制限時間なし</option>
- 　 <option value="3">3秒</option>
-　  <option value="5">5秒</option>
-　  <option value="10">10秒</option>
- 　 <option value="20">20秒</option>
-　  <option value="30" selected>30秒</option>
-　  <option value="45">45秒</option>
- 　 <option value="60">60秒</option>
-　</select>
+  <label>制限時間選択</label>
+  <select id="timeSelect">
+    <option value="0">制限時間なし</option>
+    <option value="3">3秒</option>
+    <option value="5" selected>5秒</option>
+    <option value="10">10秒</option>
+    <option value="20">20秒</option>
+    <option value="30">30秒</option>
+    <option value="45">45秒</option>
+    <option value="60">60秒</option>
+  </select>
 </div>
 
 <label>世代選択</label>
@@ -138,7 +138,7 @@ let numbers = [];
 let currentNumber = null;
 let timer = null;
 let timeLeft = 0;
-let limit = 30;
+let limit = 5;
 let score = 0;
 let elapsed = 0;
 let attackTimer = null;
@@ -699,6 +699,7 @@ if (
 </script>
 </body>
 </html>
+
 
 
 
