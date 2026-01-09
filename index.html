@@ -234,6 +234,13 @@ const genRanges = {
     data.score === totalMax
   );
 }
+
+  // ★ タイムアタック完全制覇判定（全モード）
+function isTimeAttackMaster(){
+  const modes = ["num2poke", "poke2num"];
+
+  return modes.every(mode => isAllGenClearedForMode(mode));
+}
   
   function getSelectedGenInfo(){
   const checked = [...genCheckboxes].filter(c => c.checked && c.value !== "all");
@@ -318,6 +325,20 @@ function updateBest(){
 
   opt.textContent = baseText + (crowned ? " 👑" : "");
 });
+
+  // ===== ルール👑表示更新 =====
+  [...ruleSelect.options].forEach(opt => {
+    if (opt.value === "timeattack") {
+      opt.textContent =
+        "タイムアタック" + (isTimeAttackMaster() ? " 👑" : "");
+    }
+    else {
+      opt.textContent = "エンドレス";
+    }
+  });
+
+  const rule = ruleSelect.value;
+  const {allChecked} = getSelectedNumbers();
   
   const rule = ruleSelect.value;
   
@@ -630,3 +651,4 @@ if (
 </script>
 </body>
 </html>
+
