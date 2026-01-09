@@ -331,6 +331,35 @@ function attackKey(){
 fetch("pokemon.json").then(r=>r.json()).then(data=>{
   pokemon=data;
   numbers=Object.keys(pokemon).map(Number);
+
+  // ===== タイムアタック「全て」自動リセット処理（世代追加対応） =====
+function resetAllTimeAttackIfGenAdded() {
+  try {
+    // 前回保存されていた世代数情報を取得
+    const infoRaw = localStorage.getItem("pokemon_data_info");
+    const info = infoRaw ? JSON.parse(infoRaw) : {};
+
+    const prevGenCount = info.genCount || 0;
+    const currentGenCount = Object.keys(genRanges).length;
+
+    // 世代が増えた場合のみ
+    if (currentGenCount > prevGenCount) {
+      console.log("世代追加検出 → タイムアタック『全て』をリセット");
+
+      ["num2poke", "poke2num"].forEach(mode => {
+        const key = `pokemon_attack_${mode}_全て`;
+        localStorage.removeItem(key);
+      });
+
+      // 現在の世代数を保存
+      info.genCount = currentGenCount;
+      localStorage.setItem("pokemon_data_info", JSON.stringify(info));
+    }
+  } catch (e) {
+    console.error("タイムアタック『全て』リセットでエラー:", e);
+  }
+}
+  
   updateBest();
 }).catch(()=>alert("pokemon.json の読み込みに失敗しました"));
 
@@ -670,6 +699,7 @@ if (
 </script>
 </body>
 </html>
+
 
 
 
