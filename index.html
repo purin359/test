@@ -216,6 +216,25 @@ const genRanges = {
   kanto:[1,151], johto:[152,251], hoenn:[252,386], sinnoh:[387,493],
   unova:[494,649], kalos:[650,721], alola:[722,809], galar:[810,905], paldea:[906,1025]
 };
+
+  // 全世代クリア判定（タイムアタック・モード別）
+  function isAllGenClearedForMode(mode){
+  // 現在の全世代数を計算（将来追加対応）
+  let totalMax = 0;
+  Object.values(genRanges).forEach(([s, e]) => {
+    totalMax += (e - s + 1);
+  });
+
+  // 「全て」でのタイムアタック記録だけを見る
+  const key = `pokemon_attack_${mode}_全て`;
+  const data = loadAttackData(key);
+
+  return (
+    data.clears > 0 &&
+    data.score === totalMax
+  );
+}
+  
   function getSelectedGenInfo(){
   const checked = [...genCheckboxes].filter(c => c.checked && c.value !== "all");
 
@@ -287,6 +306,18 @@ fetch("pokemon.json").then(r=>r.json()).then(data=>{
 }).catch(()=>alert("pokemon.json の読み込みに失敗しました"));
 
 function updateBest(){
+
+  // ===== モード👑表示更新 =====
+[...modeSelect.options].forEach(opt => {
+  const baseText =
+    opt.value === "num2poke"
+      ? "番号→ポケモン"
+      : "ポケモン→番号";
+
+  const crowned = isAllGenClearedForMode(opt.value);
+
+  opt.textContent = baseText + (crowned ? " 👑" : "");
+});
   
   const rule = ruleSelect.value;
   
@@ -599,4 +630,3 @@ if (
 </script>
 </body>
 </html>
-
