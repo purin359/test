@@ -117,22 +117,6 @@ select, input, button { width:100%; font-size:1.1em; padding:10px; margin:8px 0;
   return `${h}時間${String(m).padStart(2,"0")}分${String(s).padStart(2,"0")}秒`;
   }
 
-function loadAttackData(key){
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return { score: 0, time: 0, clears: 0 };
-
-    const d = JSON.parse(raw);
-    return {
-      score: Number(d.score) || 0,
-      time: Number(d.time) || 0,
-      clears: Number(d.clears) || 0
-    };
-  } catch (e) {
-    // 壊れていたら初期化
-    return { score: 0, time: 0, clears: 0 };
-  }
-}
 
 let pokemon = {};
 let numbers = [];
@@ -429,18 +413,6 @@ function updateBest(){
   document.getElementById("bestBody").innerText = body;
 }
 
-  // 1回以上クリアしている場合のみ追加
-  if (data.clears > 0) {
-    body += `
-    タイム：${formatHMS_Result(data.time)}
-    クリア回数：${data.clears}`;
-    const avgTime = data.score ? (data.time / data.score).toFixed(2) : "0.00";
-    body += `\n平均回答時間：${avgTime}秒`;
-  }
-
-  document.getElementById("bestBody").innerText = body;
-}
-
 // 世代チェックトグル
 genCheckboxes.forEach(cb => cb.addEventListener("change", () => {
 
@@ -720,3 +692,4 @@ if (
 </script>
 </body>
 </html>
+
