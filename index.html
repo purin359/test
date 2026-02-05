@@ -322,8 +322,10 @@ function getSelectedNumbers(){
 
 function attackKey() {
   const info = getSelectedGenInfo();
-  return `pokemon_attack_${ruleSelect.value}_${modeSelect.value}_${info.name}`;
+  // info.name が世代名（カントー、ジョウト…）や「全て」になる
+  return `pokemon_attack_${modeSelect.value}_${info.name}`;
 }
+
 
 function bestKey() {
   const info = getSelectedGenInfo();
@@ -662,4 +664,5 @@ if (
 </script>
 </body>
 </html>
+
 
