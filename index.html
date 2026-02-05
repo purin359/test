@@ -203,8 +203,11 @@ function updateBest(){
   document.getElementById("bestTitle").textContent=`${info.name}の最高記録${crown}`;
   let body=`スコア：${data.score}/${info.max}`;
   if(data.clears>0) body+=`\nタイム：${formatHMS_Result(data.time)}\nクリア回数：${data.clears}`;
-  document.getElementById("bestBody").innerText=body;
+  // ★ ここに平均回答時間を追加
+const avgTime = data.time && data.score ? (data.time / data.score).toFixed(2) : "0.00"; // 秒、小数第2位
+body += `\n平均回答時間：${avgTime}秒`;
 }
+document.getElementById("bestBody").innerText = body;
 
 genCheckboxes.forEach(cb=>cb.addEventListener("change",()=>{
   if(isPlaying){ forceEndGame(); return; }
@@ -326,3 +329,4 @@ function forceEndGame(){
 </script>
 </body>
 </html>
+
