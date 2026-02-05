@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -78,127 +79,648 @@ select, input, button { width:100%; font-size:1.1em; padding:10px; margin:8px 0;
     ⏱ <span id="timer"></span><br>
     正解数：<span id="score">0</span>
   </div>
+
   <input id="answer" placeholder="答えを入力" autocomplete="off">
   <button onclick="checkAnswer()" style="padding:24px 10px;">判定</button>
+  <!-- 必要になったら戻して -->
+  <!-- <button onclick="giveUp()">ギブアップ</button> -->
 </div>
 </div>
 
 <script>
-// ==========================================
-// ユーティリティ
-// ==========================================
-function formatHMS_Game(sec){const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60; return h===0?`${m}:${String(s).padStart(2,"0")}`:`${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;}
-function formatHMS_Result(sec){const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60; return h===0?`${m}分${String(s).padStart(2,"0")}秒`:`${h}時間${String(m).padStart(2,"0")}分${String(s).padStart(2,"0")}秒`;}
-function normalizeJP(str){return str.normalize("NFKC").replace(/[\u3041-\u3096]/g,ch=>String.fromCharCode(ch.charCodeAt(0)+0x60));}
+// ゲーム中表示用 0:00:00
+  function formatHMS_Game(sec){
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
 
-// ==========================================
-// 定数・変数
-// ==========================================
-const genRanges={kanto:[1,151],johto:[152,251],hoenn:[252,386],sinnoh:[387,493],unova:[494,649],kalos:[650,721],alola:[722,809],galar:[810,905],paldea:[906,1025]};
-let pokemon={}, numbers=[], currentNumber=null, timer=null, attackTimer=null;
-let timeLeft=0, limit=5, score=0, elapsed=0, attackPool=[], totalQuestions=0;
-let isPlaying=false, isNewRecord=false;
-const DATA_VERSION=1;
+  // 1時間未満
+  if (h === 0) {
+    return `${m}:${String(s).padStart(2,"0")}`;
+}
 
-// ==========================================
-// DOM
-// ==========================================
-const answer=document.getElementById("answer");
-const timeSelect=document.getElementById("timeSelect");
-const bestContainer=document.getElementById("bestContainer");
-const modeSelect=document.getElementById("modeSelect");
-const ruleSelect=document.getElementById("ruleSelect");
-const genCheckboxes=document.querySelectorAll(".gen-container input[type='checkbox']");
-const messageDiv=document.getElementById("message");
+  // 1時間以上
+  return `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  }
 
-// ==========================================
-// ローカルストレージ
-// ==========================================
-function loadAttackData(key){try{const raw=localStorage.getItem(key); if(!raw)return {score:0,time:0,clears:0}; const d=JSON.parse(raw); return {score:Number(d.score)||0, time:Number(d.time)||0, clears:Number(d.clears)||0};}catch{return {score:0,time:0,clears:0};}}
-function saveAttackData(key,data){const safe={version:DATA_VERSION, score:Math.max(0,data.score||0), time:Math.max(0,data.time||0), clears:Math.max(0,data.clears||0)}; localStorage.setItem(key,JSON.stringify(safe));}
+// リザルト・最高記録用 0時間00分00秒
+  function formatHMS_Result(sec){
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
 
-// ==========================================
-// 世代選択
-// ==========================================
-function getSelectedNumbers(){let selected=[], allChecked=true; genCheckboxes.forEach(cb=>{if(cb.value!=="all"){if(cb.checked){const [s,e]=genRanges[cb.value];for(let i=s;i<=e;i++)selected.push(i);} else allChecked=false;}}); if(allChecked){selected=[]; Object.values(genRanges).forEach(([s,e])=>{for(let i=s;i<=e;i++) selected.push(i);});} return {nums:selected, allChecked};}
-function getSelectedGenInfo(){const checked=[...genCheckboxes].filter(c=>c.checked && c.value!=="all"); if(checked.length===0||checked.length===Object.keys(genRanges).length) return {name:"全て", max:1025}; if(checked.length===1){const v=checked[0].value; const [s,e]=genRanges[v]; const names={kanto:"カントー",johto:"ジョウト",hoenn:"ホウエン",sinnoh:"シンオウ",unova:"イッシュ",kalos:"カロス",alola:"アローラ",galar:"ガラル",paldea:"パルデア"}; return {name:names[v], max:e-s+1};} let max=0; checked.forEach(c=>{const [s,e]=genRanges[c.value]; max+=e-s+1;}); return {name:"複数世代", max};}
-function bestKey(){return `pokemon_best_${modeSelect.value}_${limit}_${getSelectedGenInfo().name}`;}
-function attackKey(){return `pokemon_attack_${modeSelect.value}_${getSelectedGenInfo().name}`;}
+  // 1時間未満
+  if (h === 0) {
+    return `${m}分${String(s).padStart(2,"0")}秒`;
+}
 
-// ==========================================
+  // 1時間以上
+  return `${h}時間${String(m).padStart(2,"0")}分${String(s).padStart(2,"0")}秒`;
+  }
+
+function loadAttackData(key){
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return { score: 0, time: 0, clears: 0 };
+
+    const d = JSON.parse(raw);
+    return {
+      score: Number(d.score) || 0,
+      time: Number(d.time) || 0,
+      clears: Number(d.clears) || 0
+    };
+  } catch (e) {
+    // 壊れていたら初期化
+    return { score: 0, time: 0, clears: 0 };
+  }
+}
+
+let pokemon = {};
+let numbers = [];
+let currentNumber = null;
+let timer = null;
+let timeLeft = 0;
+let limit = 5;
+let score = 0;
+let elapsed = 0;
+let attackTimer = null;
+let attackPool = []; // タイムアタック用・残り出題リスト
+let isPlaying = false;
+let isNewRecord = false; // NEW RECORD判定用
+
+function saveAttackData(key, data){
+  const safe = {
+    version: DATA_VERSION,
+    score: Math.max(0, Number(data.score) || 0),
+    time: Math.max(0, Number(data.time) || 0),
+    clears: Math.max(0, Number(data.clears) || 0)
+  };
+
+  localStorage.setItem(key, JSON.stringify(safe));
+}
+
+  function loadAttackData(key){
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return { score: 0, time: 0, clears: 0 };
+
+    const d = JSON.parse(raw);
+
+    return {
+      score: Number(d.score) || 0,
+      time: Number(d.time) || 0,
+      clears: Number(d.clears) || 0
+    };
+  } catch {
+    return { score: 0, time: 0, clears: 0 };
+  }
+}
+
+// ====== 定数 ======
+const DATA_VERSION = 1;
+
+// ====== DOM参照 ======
+const answer = document.getElementById("answer");
+const timeSelect = document.getElementById("timeSelect");
+const bestContainer = document.getElementById("bestContainer");
+const modeSelect = document.getElementById("modeSelect");
+const ruleSelect = document.getElementById("ruleSelect");
+const genCheckboxes = document.querySelectorAll(".gen-container input[type='checkbox']");
+const messageDiv = document.getElementById("message");
+
+modeSelect.addEventListener("change", () => {
+  if (isPlaying) {
+    forceEndGame();
+    return;
+  }
+  updateBest();
+});
+
+timeSelect.addEventListener("change", () => {
+  if (isPlaying) {
+    forceEndGame();
+    return;
+  }
+  limit = Number(timeSelect.value);
+  updateBest();
+});
+
+ruleSelect.addEventListener("change", () => {
+
+  if (isPlaying) {
+    forceEndGame();
+    return;
+  }
+  
+  if (ruleSelect.value === "timeattack") {
+    
+    document.getElementById("timeWrapper").classList.add("hidden");
+  } else {
+    
+    document.getElementById("timeWrapper").classList.remove("hidden");
+    limit = Number(timeSelect.value);
+  }
+
+  // リザルトを消す
+  messageDiv.textContent = "";
+  
+  // ルール切替時は世代を必ず全選択に戻す
+  genCheckboxes.forEach(c => c.checked = true);
+  updateBest();
+});
+
+  
+// 日本語正規化
+function normalizeJP(str){
+  return str.normalize("NFKC").replace(/[\u3041-\u3096]/g, ch=>String.fromCharCode(ch.charCodeAt(0)+0x60));
+}
+
+// 世代範囲
+const genRanges = {
+  kanto:[1,151], johto:[152,251], hoenn:[252,386], sinnoh:[387,493],
+  unova:[494,649], kalos:[650,721], alola:[722,809], galar:[810,905], paldea:[906,1025]
+};
+
+  // 全世代クリア判定（タイムアタック・モード別）
+  function isAllGenClearedForMode(mode){
+  // 現在の全世代数を計算（将来追加対応）
+  let totalMax = 0;
+  Object.values(genRanges).forEach(([s, e]) => {
+    totalMax += (e - s + 1);
+  });
+
+  // 「全て」でのタイムアタック記録だけを見る
+  const key = `pokemon_attack_${mode}_全て`;
+  const data = loadAttackData(key);
+
+  return (
+    data.clears > 0 &&
+    data.score === totalMax
+  );
+}
+
+  // ★ タイムアタック完全制覇判定（全モード）
+function isTimeAttackMaster(){
+  const modes = ["num2poke", "poke2num"];
+
+  return modes.every(mode => isAllGenClearedForMode(mode));
+}
+  
+  function getSelectedGenInfo(){
+  const checked = [...genCheckboxes].filter(c => c.checked && c.value !== "all");
+
+  if (checked.length === 0 || checked.length === Object.keys(genRanges).length) {
+    return { name: "全て", max: 1025 };
+  }
+
+  if (checked.length === 1) {
+    const v = checked[0].value;
+    const [s,e] = genRanges[v];
+    const names = {
+      kanto:"カントー", johto:"ジョウト", hoenn:"ホウエン", sinnoh:"シンオウ",
+      unova:"イッシュ", kalos:"カロス", alola:"アローラ",
+      galar:"ガラル", paldea:"パルデア"
+    };
+    return { name: names[v], max: e - s + 1 };
+  }
+
+  // 複数世代
+  let max = 0;
+  checked.forEach(c=>{
+    const [s,e] = genRanges[c.value];
+    max += (e - s + 1);
+  });
+  return { name: "複数世代", max };
+}
+
+// 選択世代番号取得
+function getSelectedNumbers(){
+  let selected = [];
+  let allChecked = true;
+
+  genCheckboxes.forEach(cb => {
+    if (cb.value !== "all") {
+      if (cb.checked) {
+        const [s, e] = genRanges[cb.value];
+        for (let i = s; i <= e; i++) selected.push(i);
+      } else {
+        allChecked = false;
+      }
+    }
+  });
+
+  // ★ 全てチェック時は全世代
+  if (allChecked) {
+    selected = [];
+    Object.values(genRanges).forEach(([s, e]) => {
+      for (let i = s; i <= e; i++) selected.push(i);
+    });
+  }
+
+  return { nums: selected, allChecked };
+}
+
+function bestKey(){ 
+  const info = getSelectedGenInfo();
+  return `pokemon_best_${modeSelect.value}_${limit}_${info.name}`;
+}
+function attackKey(){
+  const info = getSelectedGenInfo();
+  return `pokemon_attack_${modeSelect.value}_${info.name}`;
+}
+
 // JSON読み込み
-// ==========================================
-fetch("pokemon.json").then(r=>r.json()).then(data=>{pokemon=data; numbers=Object.keys(pokemon).map(Number); updateBest();}).catch(()=>alert("pokemon.json の読み込みに失敗しました"));
+fetch("pokemon.json").then(r=>r.json()).then(data=>{
+  pokemon=data;
+  numbers=Object.keys(pokemon).map(Number);
 
-// ==========================================
-// 最高記録更新
-// ==========================================
+  // ===== タイムアタック「全て」自動リセット処理（世代追加対応） =====
+function resetAllTimeAttackIfGenAdded() {
+  try {
+    // 前回保存されていた世代数情報を取得
+    const infoRaw = localStorage.getItem("pokemon_data_info");
+    const info = infoRaw ? JSON.parse(infoRaw) : {};
+
+    const prevGenCount = info.genCount || 0;
+    const currentGenCount = Object.keys(genRanges).length;
+
+    // 世代が増えた場合のみ
+    if (currentGenCount > prevGenCount) {
+      console.log("世代追加検出 → タイムアタック『全て』をリセット");
+
+      ["num2poke", "poke2num"].forEach(mode => {
+        const key = `pokemon_attack_${mode}_全て`;
+        localStorage.removeItem(key);
+      });
+
+      // 現在の世代数を保存
+      info.genCount = currentGenCount;
+      localStorage.setItem("pokemon_data_info", JSON.stringify(info));
+    }
+  } catch (e) {
+    console.error("タイムアタック『全て』リセットでエラー:", e);
+  }
+}
+  
+  updateBest();
+}).catch(()=>alert("pokemon.json の読み込みに失敗しました"));
+
 function updateBest(){
-  const rule=ruleSelect.value; const {allChecked}=getSelectedNumbers();
-  bestContainer.style.display=(rule==="endless"&&!allChecked)?"none":"block";
 
-  // エンドレス
-  if(rule==="endless"){
-    document.getElementById("bestTitle").textContent="この時間の最高記録（1位～3位）";
-    const bests=JSON.parse(localStorage.getItem(bestKey())||"[0,0,0]");
-    document.getElementById("bestBody").textContent=bests.join(" / ");
+  // ===== モード👑表示更新 =====
+[...modeSelect.options].forEach(opt => {
+  const baseText =
+    opt.value === "num2poke"
+      ? "番号→ポケモン"
+      : "ポケモン→番号";
+
+  const crowned = isAllGenClearedForMode(opt.value);
+
+  opt.textContent = baseText + (crowned ? " 👑" : "");
+});
+
+  // ===== ルール👑表示更新 =====
+  [...ruleSelect.options].forEach(opt => {
+    if (opt.value === "timeattack") {
+      opt.textContent =
+        "タイムアタック" + (isTimeAttackMaster() ? " 👑" : "");
+    }
+    else {
+      opt.textContent = "エンドレス";
+    }
+  });
+  
+  const rule = ruleSelect.value;
+  
+  const {allChecked} = getSelectedNumbers();
+
+// エンドレスは「全て」以外非表示
+if (ruleSelect.value === "endless" && !allChecked) {
+  bestContainer.style.display = "none";
+  return;
+}
+
+// タイムアタックは常に表示
+bestContainer.style.display = "block";
+  
+  // ===== エンドレス =====
+  if (ruleSelect.value === "endless") {
+    document.getElementById("bestTitle").textContent =
+      "この時間の最高記録（1位～3位）";
+
+    const bests = JSON.parse(localStorage.getItem(bestKey())||"[0,0,0]");
+    document.getElementById("bestBody").textContent =
+      bests.join(" / ");
     return;
   }
 
-  // タイムアタック
-  const info=getSelectedGenInfo(); const key=attackKey(); const data=loadAttackData(key);
-  const crown=data.clears>0?" 👑":"";
-  document.getElementById("bestTitle").textContent=`${info.name}の最高記録${crown}`;
-  let body=`スコア：${data.score}/${info.max}`;
-  if(data.clears>0){
-    body+=`\nタイム：${formatHMS_Result(data.time)}\nクリア回数：${data.clears}`;
-    const avgTime=(data.time && data.score)?(data.time/data.score).toFixed(2):"0.00";
-    body+=`\n平均回答時間：${avgTime}秒`;
+  // ===== タイムアタック =====
+  const info = getSelectedGenInfo();
+
+  // タイムアタックのリザルト表示
+  const key = attackKey();
+  // 読み込み（回復）
+  const data = loadAttackData(key);
+
+  // 👑はクリア済みのみ
+  const crown = data.clears > 0 ? " 👑" :"";
+  document.getElementById("bestTitle").textContent =
+    `${info.name}の最高記録${crown}`;
+
+  // 表示本文を組み立てる
+  let body = `スコア：${data.score}/${info.max}`;
+
+  // 1回以上クリアしている場合のみ追加
+  if (data.clears > 0) {
+  body += `
+  タイム：${formatHMS_Result(data.time)}
+  クリア回数：${data.clears}`;
+
+  // 平均回答時間（秒）
+  const avgTime = data.score ? (data.time / data.score).toFixed(2) : "0.00";
+  body += `\n平均回答時間：${avgTime}秒`;
+}
+
+
+  document.getElementById("bestBody").innerText = body;
+}
+
+// 世代チェックトグル
+genCheckboxes.forEach(cb => cb.addEventListener("change", () => {
+
+  if (isPlaying) {
+    forceEndGame();
+    return;
   }
-  document.getElementById("bestBody").innerText=body;
+  
+  const allCb = [...genCheckboxes].find(c => c.value === "all");
+
+  // エンドレス
+  if (ruleSelect.value === "endless") {
+
+    if (cb.value === "all") {
+      const anyChecked = [...genCheckboxes]
+        .some(c => c.value !== "all" && c.checked);
+
+      // 何か選ばれている → 全解除
+      if (anyChecked) {
+        genCheckboxes.forEach(c => c.checked = false);
+      }
+      // 何も選ばれていない → 全選択
+      else {
+        genCheckboxes.forEach(c => c.checked = true);
+      }
+    } else {
+      // 個別変更時は「全て」を解除
+      allCb.checked = false;
+    }
+  }
+
+// ★ 個別世代がすべてONなら「全て」もONにする
+if (ruleSelect.value === "endless") {
+  const allCb = [...genCheckboxes].find(c => c.value === "all");
+  const others = [...genCheckboxes].filter(c => c.value !== "all");
+
+  const allCheckedNow = others.every(c => c.checked);
+  if (allCheckedNow) {
+    allCb.checked = true;
+  }
 }
 
-// ==========================================
-// ゲーム開始・次の問題
-// ==========================================
-function startGame(){isPlaying=true; score=0; elapsed=0; document.getElementById("score").textContent=score; document.getElementById("game").classList.remove("hidden"); messageDiv.textContent=""; clearInterval(timer); clearInterval(attackTimer);
-const selectedNums=getSelectedNumbers().nums; if(ruleSelect.value==="timeattack"){attackPool=selectedNums.slice(); totalQuestions=attackPool.length; document.getElementById("timer").textContent=formatHMS_Game(elapsed); attackTimer=setInterval(()=>{elapsed++; document.getElementById("timer").textContent=formatHMS_Game(elapsed);},1000);} else{limit=Number(timeSelect.value);}
-nextQuestion();
+  // タイムアタック
+  else {
+    if (cb.value === "all") {
+      genCheckboxes.forEach(c => c.checked = true);
+    } else {
+      genCheckboxes.forEach(c => {
+        c.checked = (c === cb);
+      });
+    }
+  }
+
+  updateBest();
+}));
+
+// ゲーム開始
+function startGame(){
+  isPlaying = true;
+  score = 0;
+  elapsed = 0;
+
+  document.getElementById("score").textContent = score;
+  document.getElementById("game").classList.remove("hidden");
+  messageDiv.textContent = "";
+
+  clearInterval(timer);
+  clearInterval(attackTimer);
+
+  if (ruleSelect.value === "timeattack") {
+    // タイムアタック用プール作成（重複防止）
+    attackPool = getSelectedNumbers().nums.slice();
+
+    document.getElementById("timer").textContent = formatHMS_Game(elapsed);
+    attackTimer = setInterval(() => {
+      elapsed++;
+      document.getElementById("timer").textContent = formatHMS_Game(elapsed);
+    }, 1000);
+  } else {
+    // エンドレス
+    limit = Number(timeSelect.value);
+  }
+
+  nextQuestion();
+}
+  
+// 次の問題
+function nextQuestion(){
+  clearInterval(timer);
+
+  // ===== タイムアタック =====
+  if (ruleSelect.value === "timeattack") {
+
+    // 全問正解 → クリア
+    if (attackPool.length === 0) {
+      gameOver("🎉 全問クリア！");
+      return;
+    }
+
+    // 残りからランダムで1体取り出す
+    const idx = Math.floor(Math.random() * attackPool.length);
+    currentNumber = attackPool.splice(idx, 1)[0];
+  }
+
+  // ===== エンドレス =====
+  else {
+    const {nums} = getSelectedNumbers();
+    if(nums.length===0){ alert("世代を選択してください"); return; }
+
+    if(limit===0){
+      document.getElementById("timer").textContent="∞";
+    } else{
+      timeLeft = limit;
+      document.getElementById("timer").textContent = timeLeft;
+      timer = setInterval(()=>{
+        timeLeft--;
+        document.getElementById("timer").textContent = timeLeft;
+        if(timeLeft<=0) gameOver("時間切れ！");
+      },1000);
+    }
+
+    currentNumber = nums[Math.floor(Math.random()*nums.length)];
+  }
+
+  document.getElementById("number").textContent =
+    modeSelect.value==="num2poke"
+      ? currentNumber
+      : pokemon[currentNumber];
+
+ const numberEl = document.getElementById("number");
+
+if (modeSelect.value === "num2poke") {
+  // 番号 → ポケモン のときだけ青
+  numberEl.style.color = "blue";
+} else {
+  // ポケモン → 番号 は黒
+  numberEl.style.color = "black";
 }
 
-function nextQuestion(){clearInterval(timer);
-if(ruleSelect.value==="timeattack"){if(attackPool.length===0){gameOver("🎉 全問クリア！"); return;} const idx=Math.floor(Math.random()*attackPool.length); currentNumber=attackPool.splice(idx,1)[0];} else{const {nums}=getSelectedNumbers(); if(nums.length===0){alert("世代を選択してください"); return;} if(limit===0) document.getElementById("timer").textContent="∞"; else{timeLeft=limit; document.getElementById("timer").textContent=timeLeft; timer=setInterval(()=>{timeLeft--; document.getElementById("timer").textContent=timeLeft; if(timeLeft<=0) gameOver("時間切れ！");},1000);} currentNumber=nums[Math.floor(Math.random()*nums.length)];}
-const numberEl=document.getElementById("number"); numberEl.textContent=modeSelect.value==="num2poke"?currentNumber:pokemon[currentNumber]; numberEl.style.color=modeSelect.value==="num2poke"?"blue":"black"; answer.value=""; answer.focus();
+  answer.value="";
+  answer.focus();
 }
 
-// ==========================================
+// Enter判定
+answer.addEventListener("keydown", e=>{ if(e.key==="Enter") checkAnswer(); });
+
 // 判定
-// ==========================================
-answer.addEventListener("keydown",e=>{if(e.key==="Enter") checkAnswer();});
-function checkAnswer(){clearInterval(timer); const input=normalizeJP(answer.value.trim()); const correct=modeSelect.value==="num2poke"?normalizeJP(pokemon[currentNumber]):String(currentNumber); if(input===correct){score++; document.getElementById("score").textContent=score; nextQuestion();} else gameOver("不正解！");}
-
-// ==========================================
-// ゲームオーバー
-// ==========================================
-function gameOver(reason){clearInterval(timer); clearInterval(attackTimer); const {allChecked}=getSelectedNumbers(); let bests=[0,0,0];
-
-if(allChecked){bests=JSON.parse(localStorage.getItem(bestKey())||"[0,0,0]"); if(score>bests[0]) bests=[score,bests[0],bests[1]]; else if(score>bests[1]) bests=[bests[0],score,bests[1]]; else if(score>bests[2]) bests[2]=score; localStorage.setItem(bestKey(),JSON.stringify(bests));}
-
-if(ruleSelect.value==="timeattack"){const key=attackKey(); const prev=loadAttackData(key); const cleared=reason==="🎉 全問クリア！"; const newScore=Math.max(prev.score,score); isNewRecord=false; let newTime=prev.time; if(cleared && (prev.time===0 || elapsed<prev.time)){newTime=elapsed; isNewRecord=true;} const newClears=prev.clears+(cleared?1:0); saveAttackData(key,{score:newScore,time:newTime,clears:newClears});}
-
-const correctAnswer=modeSelect.value==="num2poke"?pokemon[currentNumber]:currentNumber; let msg="";
-if(reason==="🎉 全問クリア！"){const info=getSelectedGenInfo(); const masterName=info.name==="全て"?"図鑑番号":info.name; const avgTime=(elapsed/totalQuestions).toFixed(2); msg=`クリア！おめでとう！\nあなたは${masterName}マスター！\nクリアタイム：${formatHMS_Result(elapsed)}\n平均回答時間：${avgTime}秒`; if(isNewRecord) msg+="\n🎉 NEW RECORD！";}
-else{msg=reason+`\nスコア：${score}\n答えは「${correctAnswer}」`; if(ruleSelect.value==="timeattack") msg+=`\nタイム：${formatHMS_Result(elapsed)}`;}
-
-if(ruleSelect.value==="endless" && allChecked) msg+=`\n最高記録：${bests.join(" / ")}`;
-
-messageDiv.textContent=msg; updateBest(); document.getElementById("game").classList.add("hidden"); isPlaying=false;
+function checkAnswer(){
+  clearInterval(timer);
+  const input = normalizeJP(answer.value.trim());
+  const correct = modeSelect.value==="num2poke"?normalizeJP(pokemon[currentNumber]):String(currentNumber);
+  if(input===correct){
+    score++;
+    document.getElementById("score").textContent = score;
+    nextQuestion();
+  } else{
+    gameOver("不正解！");
+  }
 }
 
-// ==========================================
-// 強制終了
-// ==========================================
-function forceEndGame(){clearInterval(timer); clearInterval(attackTimer); isPlaying=false; document.getElementById("game").classList.add("hidden"); messageDiv.textContent="⚠ 設定が変更されたためゲームを終了しました";}
+// ギブアップ
+function giveUp(){ gameOver("ギブアップ！"); }
+// ゲームオーバー
+function gameOver(reason){
+  clearInterval(timer);
+  clearInterval(attackTimer);
+
+  const {allChecked} = getSelectedNumbers();
+/* ===== エンドレス最高記録 ===== */
+  let bests=[0,0,0];
+  if(allChecked){
+    bests = JSON.parse(localStorage.getItem(bestKey())||"[0,0,0]");
+    if(score>bests[0]){bests=[score,bests[0],bests[1]];}
+    else if(score>bests[1]){bests=[bests[0],score,bests[1]];}
+    else if(score>bests[2]){bests[2]=score;}
+    localStorage.setItem(bestKey(), JSON.stringify(bests));
+  }
+
+  /* ===== タイムアタック記録 ===== */
+if (ruleSelect.value === "timeattack") {
+  const key = attackKey();
+  const prev = loadAttackData(key);
+
+  // 「全問クリア」のときだけ true
+  const cleared = reason === "🎉 全問クリア！";
+
+  // スコアは常に最大値
+  const newScore = Math.max(prev.score, score);
+
+  // ★ NEW RECORD 判定をリセット
+isNewRecord = false;
+
+// ★ クリアしたときだけタイム更新 ★
+let newTime = prev.time;
+
+if (cleared) {
+  // 初クリア または 自己ベスト更新
+  if (prev.time === 0 || elapsed < prev.time) {
+    newTime = elapsed;
+    isNewRecord = true; // ★ NEW RECORD！
+  }
+}
+  
+  // クリア回数もクリア時のみ増やす
+  const newClears = prev.clears + (cleared ? 1 : 0);
+
+  saveAttackData(key, {
+    score: newScore,
+    time: newTime,
+    clears: newClears
+  });
+}
+  /* ===== 表示処理 ===== */
+const correctAnswer = modeSelect.value==="num2poke"
+  ? pokemon[currentNumber]
+  : currentNumber;
+
+let msg = "";
+
+if (reason === "🎉 全問クリア！") {
+  const info = getSelectedGenInfo();
+  const masterName = info.name === "全て" ? "図鑑番号" : info.name;
+
+  msg =
+`クリア！おめでとう！
+あなたは${masterName}マスター！
+クリアタイム：${formatHMS_Result(elapsed)}`;
+
+// 平均回答時間
+const avgTime = score ? (elapsed / score).toFixed(2) : "0.00";
+msg += `\n平均回答時間：${avgTime}秒`;
+
+// NEW RECORD 表示
+if (isNewRecord) {
+  msg += "\n🎉 NEW RECORD！";
+}
+}
+else {
+  msg = reason + "\nスコア：" + score +
+        "\n答えは「" + correctAnswer + "」";
+
+  if (ruleSelect.value === "timeattack") {
+    msg += "\nタイム：" + formatHMS_Result(elapsed);
+    // 平均回答時間
+    const avgTime = score ? (elapsed / score).toFixed(2) : "0.00";
+    msg += `\n平均回答時間：${avgTime}秒`;
+  }
+}
+
+
+  // ★ エンドレス ＆ 全て選択 ＆ ゲームオーバー時のみ表示
+if (
+  ruleSelect.value === "endless" &&
+  allChecked
+) {
+  msg += "\n最高記録：" + bests.join(" / ");
+}
+
+  messageDiv.textContent = msg;
+  updateBest();
+  document.getElementById("game").classList.add("hidden");
+  
+  isPlaying = false;
+}
+
+  // 変更時の強制終了
+  function forceEndGame(){
+  clearInterval(timer);
+  clearInterval(attackTimer);
+  isPlaying = false;
+
+  document.getElementById("game").classList.add("hidden");
+  messageDiv.textContent =
+    "⚠ 設定が変更されたためゲームを終了しました";
+}
+
 </script>
 </body>
 </html>
