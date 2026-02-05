@@ -5,108 +5,185 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ポケモン図鑑番号検定</title>
 <style>
-body { font-family: system-ui, sans-serif; margin:0; padding:10px; background:#f5f5f5; }
-.container { max-width:500px; margin:auto; background:white; padding:15px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
-h1 { text-align:center; font-size:1.4em; margin-bottom:10px; }
-select, input, button { width:100%; font-size:1.1em; padding:10px; margin:8px 0; }
-#status { text-align:center; font-size:1.1em; margin:10px 0; }
-#timer { font-weight:bold; color:red; }
-.hidden { display:none; }
-.gen-container { display:grid; grid-template-columns:1fr 1fr; gap:5px; margin:10px 0; border:1px solid #ccc; padding:5px; border-radius:5px; }
-.gen-container label { position:relative; padding-left:5px; display:block; height:25px; line-height:25px; }
-.gen-container input[type="checkbox"] { position:absolute; top:0; right:0; transform:scale(1.2); }
-.gen-note { font-size:0.9em; color:#555; margin-bottom:10px; }
-#message { margin:10px 0; white-space:pre-wrap; font-size:1.05em; }
+body {
+    font-family: system-ui, sans-serif;
+    margin: 0;
+    padding: 10px;
+    background: #f5f5f5;
+}
+
+.container {
+    max-width: 500px;
+    margin: auto;
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h1 {
+    text-align: center;
+    font-size: 1.4em;
+    margin-bottom: 10px;
+}
+
+select, input, button {
+    width: 100%;
+    font-size: 1.1em;
+    padding: 10px;
+    margin: 8px 0;
+}
+
+#status {
+    text-align: center;
+    font-size: 1.1em;
+    margin: 10px 0;
+}
+
+#timer {
+    font-weight: bold;
+    color: red;
+}
+
+.hidden {
+    display: none;
+}
+
+.gen-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.gen-container label {
+    position: relative;
+    padding-left: 5px;
+    display: block;
+    height: 25px;
+    line-height: 25px;
+}
+
+.gen-container input[type="checkbox"] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: scale(1.2);
+}
+
+.gen-note {
+    font-size: 0.9em;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+#message {
+    margin: 10px 0;
+    white-space: pre-wrap;
+    font-size: 1.05em;
+}
 </style>
 </head>
 <body>
+
 <div class="container">
+
 <h1>ポケモン図鑑番号検定</h1>
 
 <label>モード選択</label>
 <select id="modeSelect">
-  <option value="num2poke" selected>番号→ポケモン</option>
-  <option value="poke2num">ポケモン→番号</option>
+    <option value="num2poke" selected>番号→ポケモン</option>
+    <option value="poke2num">ポケモン→番号</option>
 </select>
 
 <label>ルール選択</label>
 <select id="ruleSelect">
-  <option value="endless" selected>エンドレス</option>
-  <option value="timeattack">タイムアタック</option>
+    <option value="endless" selected>エンドレス</option>
+    <option value="timeattack">タイムアタック</option>
 </select>
 
 <div id="timeWrapper">
-  <label>制限時間選択</label>
-  <select id="timeSelect">
-    <option value="0">制限時間なし</option>
-    <option value="3">3秒</option>
-    <option value="5" selected>5秒</option>
-    <option value="10">10秒</option>
-    <option value="20">20秒</option>
-    <option value="30">30秒</option>
-    <option value="45">45秒</option>
-    <option value="60">60秒</option>
-  </select>
+    <label>制限時間選択</label>
+    <select id="timeSelect">
+        <option value="0">制限時間なし</option>
+        <option value="3">3秒</option>
+        <option value="5" selected>5秒</option>
+        <option value="10">10秒</option>
+        <option value="20">20秒</option>
+        <option value="30">30秒</option>
+        <option value="45">45秒</option>
+        <option value="60">60秒</option>
+    </select>
 </div>
 
 <label>世代選択</label>
 <div class="gen-container">
-  <label><input type="checkbox" value="all" checked> 全て</label>
-  <label><input type="checkbox" value="kanto" checked> カントー</label>
-  <label><input type="checkbox" value="johto" checked> ジョウト</label>
-  <label><input type="checkbox" value="hoenn" checked> ホウエン</label>
-  <label><input type="checkbox" value="sinnoh" checked> シンオウ</label>
-  <label><input type="checkbox" value="unova" checked> イッシュ</label>
-  <label><input type="checkbox" value="kalos" checked> カロス</label>
-  <label><input type="checkbox" value="alola" checked> アローラ</label>
-  <label><input type="checkbox" value="galar" checked> ガラル</label>
-  <label><input type="checkbox" value="paldea" checked> パルデア</label>
+    <label><input type="checkbox" value="all" checked> 全て</label>
+    <label><input type="checkbox" value="kanto" checked> カントー</label>
+    <label><input type="checkbox" value="johto" checked> ジョウト</label>
+    <label><input type="checkbox" value="hoenn" checked> ホウエン</label>
+    <label><input type="checkbox" value="sinnoh" checked> シンオウ</label>
+    <label><input type="checkbox" value="unova" checked> イッシュ</label>
+    <label><input type="checkbox" value="kalos" checked> カロス</label>
+    <label><input type="checkbox" value="alola" checked> アローラ</label>
+    <label><input type="checkbox" value="galar" checked> ガラル</label>
+    <label><input type="checkbox" value="paldea" checked> パルデア</label>
 </div>
 <div class="gen-note">※メルタン→アローラ　ヒスイ→ガラル</div>
 
 <div id="bestContainer">
-  <div id="bestTitle"></div>
-  <div id="bestBody"></div>
+    <div id="bestTitle"></div>
+    <div id="bestBody"></div>
 </div>
 
 <div id="message"></div>
+
 <button onclick="startGame()">ゲーム開始</button>
 
 <div id="game" class="hidden">
-  <div id="status">
-    出題：<span id="number"></span><br>
-    ⏱ <span id="timer"></span><br>
-    正解数：<span id="score">0</span>
-  </div>
+    <div id="status">
+        出題：<span id="number"></span><br>
+        ⏱ <span id="timer"></span><br>
+        正解数：<span id="score">0</span>
+    </div>
 
-  <input id="answer" placeholder="答えを入力" autocomplete="off">
-  <button onclick="checkAnswer()" style="padding:24px 10px;">判定</button>
+    <input id="answer" placeholder="答えを入力" autocomplete="off">
+    <button onclick="checkAnswer()" style="padding:24px 10px;">判定</button>
 </div>
+
 </div>
 
 <script>
-function formatHMS_Game(sec){
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const s = sec % 60;
-  if (h === 0) return `${m}:${String(s).padStart(2,"0")}`;
-  return `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
-}
-function formatHMS_Result(sec){
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const s = sec % 60;
-  if (h === 0) return `${m}分${String(s).padStart(2,"0")}秒`;
-  return `${h}時間${String(m).padStart(2,"0")}分${String(s).padStart(2,"0")}秒`;
+// ======================
+// ユーティリティ関数
+// ======================
+function formatHMS_Game(sec) {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    return h === 0 ? `${m}:${String(s).padStart(2,"0")}` : `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
 }
 
-function normalizeJP(str){
-  return str.normalize("NFKC").replace(/[\u3041-\u3096]/g,ch=>String.fromCharCode(ch.charCodeAt(0)+0x60));
+function formatHMS_Result(sec) {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    return h === 0 ? `${m}分${String(s).padStart(2,"0")}秒` : `${h}時間${String(m).padStart(2,"0")}分${String(s).padStart(2,"0")}秒`;
 }
 
+function normalizeJP(str) {
+    return str.normalize("NFKC").replace(/[\u3041-\u3096]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+}
+
+// ======================
+// 定数・データ
+// ======================
 const genRanges = {
-  kanto:[1,151], johto:[152,251], hoenn:[252,386], sinnoh:[387,493],
-  unova:[494,649], kalos:[650,721], alola:[722,809], galar:[810,905], paldea:[906,1025]
+    kanto:[1,151], johto:[152,251], hoenn:[252,386], sinnoh:[387,493],
+    unova:[494,649], kalos:[650,721], alola:[722,809], galar:[810,905], paldea:[906,1025]
 };
 
 let pokemon = {};
@@ -119,11 +196,14 @@ let limit = 5;
 let score = 0;
 let elapsed = 0;
 let attackPool = [];
-let totalQuestions = 0; // タイムアタック総問題数
+let totalQuestions = 0;
 let isPlaying = false;
 let isNewRecord = false;
 const DATA_VERSION = 1;
 
+// ======================
+// DOM
+// ======================
 const answer = document.getElementById("answer");
 const timeSelect = document.getElementById("timeSelect");
 const bestContainer = document.getElementById("bestContainer");
@@ -132,201 +212,297 @@ const ruleSelect = document.getElementById("ruleSelect");
 const genCheckboxes = document.querySelectorAll(".gen-container input[type='checkbox']");
 const messageDiv = document.getElementById("message");
 
-function loadAttackData(key){
-  try{
-    const raw = localStorage.getItem(key);
-    if(!raw) return { score:0,time:0,clears:0 };
-    const d = JSON.parse(raw);
-    return { score:Number(d.score)||0, time:Number(d.time)||0, clears:Number(d.clears)||0 };
-  }catch{return { score:0,time:0,clears:0 }; }
-}
-function saveAttackData(key,data){
-  const safe = { version:DATA_VERSION, score:Math.max(0,data.score||0), time:Math.max(0,data.time||0), clears:Math.max(0,data.clears||0)};
-  localStorage.setItem(key,JSON.stringify(safe));
-}
-
-modeSelect.addEventListener("change",()=>{ if(isPlaying){ forceEndGame(); return; } updateBest(); });
-timeSelect.addEventListener("change",()=>{ if(isPlaying){ forceEndGame(); return; } limit=Number(timeSelect.value); updateBest(); });
-ruleSelect.addEventListener("change",()=>{
-  if(isPlaying){ forceEndGame(); return; }
-  if(ruleSelect.value==="timeattack") document.getElementById("timeWrapper").classList.add("hidden");
-  else { document.getElementById("timeWrapper").classList.remove("hidden"); limit=Number(timeSelect.value);}
-  messageDiv.textContent="";
-  genCheckboxes.forEach(c=>c.checked=true);
-  updateBest();
-});
-
-function getSelectedNumbers(){
-  let selected=[];
-  let allChecked=true;
-  genCheckboxes.forEach(cb=>{
-    if(cb.value!=="all"){
-      if(cb.checked){
-        const [s,e]=genRanges[cb.value];
-        for(let i=s;i<=e;i++) selected.push(i);
-      }else allChecked=false;
+// ======================
+// ローカルストレージ操作
+// ======================
+function loadAttackData(key) {
+    try {
+        const raw = localStorage.getItem(key);
+        if(!raw) return { score:0, time:0, clears:0 };
+        const d = JSON.parse(raw);
+        return { score:Number(d.score)||0, time:Number(d.time)||0, clears:Number(d.clears)||0 };
+    } catch {
+        return { score:0, time:0, clears:0 };
     }
-  });
-  if(allChecked){ selected=[]; Object.values(genRanges).forEach(([s,e])=>{for(let i=s;i<=e;i++) selected.push(i);}); }
-  return {nums:selected, allChecked};
-}
-function getSelectedGenInfo(){
-  const checked=[...genCheckboxes].filter(c=>c.checked&&c.value!=="all");
-  if(checked.length===0||checked.length===Object.keys(genRanges).length) return { name:"全て", max:1025 };
-  if(checked.length===1){
-    const v=checked[0].value; const [s,e]=genRanges[v];
-    const names={ kanto:"カントー", johto:"ジョウト", hoenn:"ホウエン", sinnoh:"シンオウ", unova:"イッシュ", kalos:"カロス", alola:"アローラ", galar:"ガラル", paldea:"パルデア"};
-    return { name:names[v], max:e-s+1 };
-  }
-  let max=0; checked.forEach(c=>{const [s,e]=genRanges[c.value]; max+=e-s+1;}); return {name:"複数世代",max};
-}
-function bestKey(){ const info=getSelectedGenInfo(); return `pokemon_best_${modeSelect.value}_${limit}_${info.name}`; }
-function attackKey(){ const info=getSelectedGenInfo(); return `pokemon_attack_${modeSelect.value}_${info.name}`; }
-
-fetch("pokemon.json").then(r=>r.json()).then(data=>{
-  pokemon=data; numbers=Object.keys(pokemon).map(Number); updateBest();
-}).catch(()=>alert("pokemon.json の読み込みに失敗しました"));
-
-function updateBest(){
-  const rule=ruleSelect.value;
-  const {allChecked}=getSelectedNumbers();
-  bestContainer.style.display=(rule==="endless"&&!allChecked)?"none":"block";
-  if(rule==="endless"){
-    document.getElementById("bestTitle").textContent="この時間の最高記録（1位～3位）";
-    const bests=JSON.parse(localStorage.getItem(bestKey())||"[0,0,0]");
-    document.getElementById("bestBody").textContent=bests.join(" / "); return;
-  }
-  const info=getSelectedGenInfo();
-  const key=attackKey();
-  const data=loadAttackData(key);
-  const crown=data.clears>0?" 👑":"";
-  document.getElementById("bestTitle").textContent=`${info.name}の最高記録${crown}`;
-  let body=`スコア：${data.score}/${info.max}`;
-  if(data.clears>0) body+=`\nタイム：${formatHMS_Result(data.time)}\nクリア回数：${data.clears}`;
-  // ★ ここに平均回答時間を追加
-const avgTime = data.time && data.score ? (data.time / data.score).toFixed(2) : "0.00"; // 秒、小数第2位
-body += `\n平均回答時間：${avgTime}秒`;
-}
-document.getElementById("bestBody").innerText = body;
-
-genCheckboxes.forEach(cb=>cb.addEventListener("change",()=>{
-  if(isPlaying){ forceEndGame(); return; }
-  const allCb=[...genCheckboxes].find(c=>c.value==="all");
-  if(ruleSelect.value==="endless"){
-    if(cb.value==="all"){
-      const anyChecked=[...genCheckboxes].some(c=>c.value!=="all"&&c.checked);
-      if(anyChecked) genCheckboxes.forEach(c=>c.checked=false);
-      else genCheckboxes.forEach(c=>c.checked=true);
-    } else allCb.checked=false;
-    const others=[...genCheckboxes].filter(c=>c.value!=="all");
-    if(others.every(c=>c.checked)) allCb.checked=true;
-  }else{
-    if(cb.value==="all") genCheckboxes.forEach(c=>c.checked=true);
-    else genCheckboxes.forEach(c=>c.checked=(c===cb));
-  }
-  updateBest();
-}));
-
-function startGame(){
-  isPlaying=true; score=0; elapsed=0; document.getElementById("score").textContent=score;
-  document.getElementById("game").classList.remove("hidden"); messageDiv.textContent="";
-  clearInterval(timer); clearInterval(attackTimer);
-
-  const selectedNums=getSelectedNumbers().nums;
-
-  if(ruleSelect.value==="timeattack"){
-    attackPool=selectedNums.slice();
-    totalQuestions=attackPool.length; // 総問題数
-    document.getElementById("timer").textContent=formatHMS_Game(elapsed);
-    attackTimer=setInterval(()=>{elapsed++; document.getElementById("timer").textContent=formatHMS_Game(elapsed);},1000);
-  }else limit=Number(timeSelect.value);
-
-  nextQuestion();
 }
 
-function nextQuestion(){
-  clearInterval(timer);
-  if(ruleSelect.value==="timeattack"){
-    if(attackPool.length===0){ gameOver("🎉 全問クリア！"); return; }
-    const idx=Math.floor(Math.random()*attackPool.length);
-    currentNumber=attackPool.splice(idx,1)[0];
-  }else{
-    const {nums}=getSelectedNumbers(); if(nums.length===0){ alert("世代を選択してください"); return; }
-    if(limit===0) document.getElementById("timer").textContent="∞";
-    else{ timeLeft=limit; document.getElementById("timer").textContent=timeLeft; timer=setInterval(()=>{ timeLeft--; document.getElementById("timer").textContent=timeLeft; if(timeLeft<=0) gameOver("時間切れ！");},1000);}
-    currentNumber=nums[Math.floor(Math.random()*nums.length)];
-  }
-  const numberEl=document.getElementById("number");
-  numberEl.textContent=modeSelect.value==="num2poke"?currentNumber:pokemon[currentNumber];
-  numberEl.style.color=(modeSelect.value==="num2poke")?"blue":"black";
-  answer.value=""; answer.focus();
+function saveAttackData(key, data) {
+    const safe = {
+        version: DATA_VERSION,
+        score: Math.max(0, data.score||0),
+        time: Math.max(0, data.time||0),
+        clears: Math.max(0, data.clears||0)
+    };
+    localStorage.setItem(key, JSON.stringify(safe));
 }
 
-answer.addEventListener("keydown",e=>{if(e.key==="Enter") checkAnswer();});
+// ======================
+// 世代・選択番号取得
+// ======================
+function getSelectedNumbers() {
+    let selected = [];
+    let allChecked = true;
 
-function checkAnswer(){
-  clearInterval(timer);
-  const input=normalizeJP(answer.value.trim());
-  const correct=modeSelect.value==="num2poke"?normalizeJP(pokemon[currentNumber]):String(currentNumber);
-  if(input===correct){ score++; document.getElementById("score").textContent=score; nextQuestion(); }
-  else gameOver("不正解！");
+    genCheckboxes.forEach(cb => {
+        if(cb.value !== "all") {
+            if(cb.checked) {
+                const [s,e] = genRanges[cb.value];
+                for(let i=s; i<=e; i++) selected.push(i);
+            } else {
+                allChecked = false;
+            }
+        }
+    });
+
+    if(allChecked) {
+        selected = [];
+        Object.values(genRanges).forEach(([s,e]) => {
+            for(let i=s; i<=e; i++) selected.push(i);
+        });
+    }
+
+    return { nums:selected, allChecked };
 }
 
-function gameOver(reason){
-  clearInterval(timer); clearInterval(attackTimer);
-  const {allChecked}=getSelectedNumbers();
-  let bests=[0,0,0];
-  if(allChecked){
-    bests=JSON.parse(localStorage.getItem(bestKey())||"[0,0,0]");
-    if(score>bests[0]){ bests=[score,bests[0],bests[1]];}
-    else if(score>bests[1]){ bests=[bests[0],score,bests[1]];}
-    else if(score>bests[2]){ bests[2]=score;}
-    localStorage.setItem(bestKey(),JSON.stringify(bests));
-  }
+function getSelectedGenInfo() {
+    const checked = [...genCheckboxes].filter(c => c.checked && c.value !== "all");
 
-  if(ruleSelect.value==="timeattack"){
-    const key=attackKey(); const prev=loadAttackData(key);
-    const cleared=reason==="🎉 全問クリア！";
-    const newScore=Math.max(prev.score,score); isNewRecord=false;
-    let newTime=prev.time;
-    if(cleared){ if(prev.time===0||elapsed<prev.time){ newTime=elapsed; isNewRecord=true; } }
-    const newClears=prev.clears+(cleared?1:0);
-    saveAttackData(key,{ score:newScore, time:newTime, clears:newClears });
-  }
+    if(checked.length === 0 || checked.length === Object.keys(genRanges).length) {
+        return { name:"全て", max:1025 };
+    }
 
-  const correctAnswer=modeSelect.value==="num2poke"?pokemon[currentNumber]:currentNumber;
-  let msg="";
+    if(checked.length === 1) {
+        const v = checked[0].value;
+        const [s,e] = genRanges[v];
+        const names = {
+            kanto:"カントー", johto:"ジョウト", hoenn:"ホウエン", sinnoh:"シンオウ",
+            unova:"イッシュ", kalos:"カロス", alola:"アローラ", galar:"ガラル", paldea:"パルデア"
+        };
+        return { name: names[v], max: e-s+1 };
+    }
 
-  if(reason==="🎉 全問クリア！"){
-    const info=getSelectedGenInfo();
-    const masterName=info.name==="全て"?"図鑑番号":info.name;
-    const avgTime=(elapsed/totalQuestions).toFixed(2); // 平均回答時間
+    let max = 0;
+    checked.forEach(c => { const [s,e] = genRanges[c.value]; max += e-s+1; });
+    return { name:"複数世代", max };
+}
 
-    msg=`クリア！おめでとう！
+// ======================
+// キー作成
+// ======================
+function bestKey() { return `pokemon_best_${modeSelect.value}_${limit}_${getSelectedGenInfo().name}`; }
+function attackKey() { return `pokemon_attack_${modeSelect.value}_${getSelectedGenInfo().name}`; }
+
+// ======================
+// JSON読み込み
+// ======================
+fetch("pokemon.json")
+    .then(r => r.json())
+    .then(data => {
+        pokemon = data;
+        numbers = Object.keys(pokemon).map(Number);
+        updateBest();
+    })
+    .catch(()=>alert("pokemon.json の読み込みに失敗しました"));
+
+// ======================
+// 最高記録更新
+// ======================
+function updateBest() {
+    const rule = ruleSelect.value;
+    const { allChecked } = getSelectedNumbers();
+    bestContainer.style.display = (rule==="endless" && !allChecked) ? "none" : "block";
+
+    if(rule==="endless") {
+        document.getElementById("bestTitle").textContent = "この時間の最高記録（1位～3位）";
+        const bests = JSON.parse(localStorage.getItem(bestKey()) || "[0,0,0]");
+        document.getElementById("bestBody").textContent = bests.join(" / ");
+        return;
+    }
+
+    const info = getSelectedGenInfo();
+    const key = attackKey();
+    const data = loadAttackData(key);
+    const crown = data.clears > 0 ? " 👑" : "";
+    document.getElementById("bestTitle").textContent = `${info.name}の最高記録${crown}`;
+
+    let body = `スコア：${data.score}/${info.max}`;
+    if(data.clears > 0) {
+        body += `\nタイム：${formatHMS_Result(data.time)}`
+              + `\nクリア回数：${data.clears}`;
+
+        // ★ 平均回答時間追加
+        const avgTime = data.time && data.score ? (data.time / data.score).toFixed(2) : "0.00";
+        body += `\n平均回答時間：${avgTime}秒`;
+    }
+
+    document.getElementById("bestBody").innerText = body;
+}
+
+// ======================
+// ゲーム開始
+// ======================
+function startGame() {
+    isPlaying = true;
+    score = 0;
+    elapsed = 0;
+    document.getElementById("score").textContent = score;
+    document.getElementById("game").classList.remove("hidden");
+    messageDiv.textContent = "";
+
+    clearInterval(timer);
+    clearInterval(attackTimer);
+
+    const selectedNums = getSelectedNumbers().nums;
+
+    if(ruleSelect.value === "timeattack") {
+        attackPool = selectedNums.slice();
+        totalQuestions = attackPool.length;
+        document.getElementById("timer").textContent = formatHMS_Game(elapsed);
+
+        attackTimer = setInterval(()=>{
+            elapsed++;
+            document.getElementById("timer").textContent = formatHMS_Game(elapsed);
+        },1000);
+    } else {
+        limit = Number(timeSelect.value);
+    }
+
+    nextQuestion();
+}
+
+// ======================
+// 次の問題
+// ======================
+function nextQuestion() {
+    clearInterval(timer);
+
+    if(ruleSelect.value === "timeattack") {
+        if(attackPool.length === 0) {
+            gameOver("🎉 全問クリア！");
+            return;
+        }
+        const idx = Math.floor(Math.random() * attackPool.length);
+        currentNumber = attackPool.splice(idx,1)[0];
+    } else {
+        const { nums } = getSelectedNumbers();
+        if(nums.length===0){ alert("世代を選択してください"); return; }
+
+        if(limit===0) {
+            document.getElementById("timer").textContent = "∞";
+        } else {
+            timeLeft = limit;
+            document.getElementById("timer").textContent = timeLeft;
+            timer = setInterval(()=>{
+                timeLeft--;
+                document.getElementById("timer").textContent = timeLeft;
+                if(timeLeft<=0) gameOver("時間切れ！");
+            },1000);
+        }
+
+        currentNumber = nums[Math.floor(Math.random()*nums.length)];
+    }
+
+    const numberEl = document.getElementById("number");
+    numberEl.textContent = modeSelect.value==="num2poke"?currentNumber:pokemon[currentNumber];
+    numberEl.style.color = modeSelect.value==="num2poke"?"blue":"black";
+
+    answer.value = "";
+    answer.focus();
+}
+
+// ======================
+// 判定
+// ======================
+answer.addEventListener("keydown", e => { if(e.key==="Enter") checkAnswer(); });
+
+function checkAnswer() {
+    clearInterval(timer);
+    const input = normalizeJP(answer.value.trim());
+    const correct = modeSelect.value==="num2poke"?normalizeJP(pokemon[currentNumber]):String(currentNumber);
+
+    if(input===correct) {
+        score++;
+        document.getElementById("score").textContent = score;
+        nextQuestion();
+    } else {
+        gameOver("不正解！");
+    }
+}
+
+// ======================
+// ゲームオーバー
+// ======================
+function gameOver(reason) {
+    clearInterval(timer);
+    clearInterval(attackTimer);
+
+    const { allChecked } = getSelectedNumbers();
+    let bests = [0,0,0];
+
+    if(allChecked) {
+        bests = JSON.parse(localStorage.getItem(bestKey()) || "[0,0,0]");
+        if(score > bests[0]){ bests = [score,bests[0],bests[1]]; }
+        else if(score > bests[1]){ bests = [bests[0],score,bests[1]]; }
+        else if(score > bests[2]){ bests[2] = score; }
+        localStorage.setItem(bestKey(), JSON.stringify(bests));
+    }
+
+    if(ruleSelect.value==="timeattack") {
+        const key = attackKey();
+        const prev = loadAttackData(key);
+        const cleared = reason==="🎉 全問クリア！";
+        const newScore = Math.max(prev.score, score);
+        isNewRecord = false;
+        let newTime = prev.time;
+
+        if(cleared && (prev.time===0 || elapsed<prev.time)) {
+            newTime = elapsed;
+            isNewRecord = true;
+        }
+
+        const newClears = prev.clears + (cleared ? 1 : 0);
+        saveAttackData(key, { score:newScore, time:newTime, clears:newClears });
+    }
+
+    const correctAnswer = modeSelect.value==="num2poke"?pokemon[currentNumber]:currentNumber;
+    let msg = "";
+
+    if(reason==="🎉 全問クリア！") {
+        const info = getSelectedGenInfo();
+        const masterName = info.name==="全て"?"図鑑番号":info.name;
+        const avgTime = (elapsed/totalQuestions).toFixed(2);
+
+        msg = `クリア！おめでとう！
 あなたは${masterName}マスター！
 クリアタイム：${formatHMS_Result(elapsed)}
 平均回答時間：${avgTime}秒`;
 
-    if(isNewRecord) msg+="\n🎉 NEW RECORD！";
-  }else{
-    msg=reason+"\nスコア："+score+"\n答えは「"+correctAnswer+"」";
-    if(ruleSelect.value==="timeattack") msg+="\nタイム："+formatHMS_Result(elapsed);
-  }
+        if(isNewRecord) msg += "\n🎉 NEW RECORD！";
 
-  if(ruleSelect.value==="endless"&&allChecked) msg+="\n最高記録："+bests.join(" / ");
+    } else {
+        msg = reason + "\nスコア：" + score + "\n答えは「" + correctAnswer + "」";
+        if(ruleSelect.value==="timeattack") msg += "\nタイム：" + formatHMS_Result(elapsed);
+    }
 
-  messageDiv.textContent=msg;
-  updateBest();
-  document.getElementById("game").classList.add("hidden");
-  isPlaying=false;
+    if(ruleSelect.value==="endless" && allChecked) msg += "\n最高記録：" + bests.join(" / ");
+
+    messageDiv.textContent = msg;
+    updateBest();
+    document.getElementById("game").classList.add("hidden");
+    isPlaying = false;
 }
 
-function forceEndGame(){
-  clearInterval(timer); clearInterval(attackTimer); isPlaying=false;
-  document.getElementById("game").classList.add("hidden");
-  messageDiv.textContent="⚠ 設定が変更されたためゲームを終了しました";
+// ======================
+// 強制終了
+// ======================
+function forceEndGame() {
+    clearInterval(timer);
+    clearInterval(attackTimer);
+    isPlaying = false;
+    document.getElementById("game").classList.add("hidden");
+    messageDiv.textContent = "⚠ 設定が変更されたためゲームを終了しました";
 }
 </script>
+
 </body>
 </html>
-
