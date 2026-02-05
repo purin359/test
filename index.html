@@ -1,4 +1,4 @@
-
+ 
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -125,10 +125,12 @@ function loadAttackData(key){
 
     const d = JSON.parse(raw);
     return {
-      score: Number(d.score) || 0,
-      time: Number(d.time) || 0,
-      clears: Number(d.clears) || 0
-    };
+    score: Number(d.score) || 0,
+    time: Number(d.time) || 0,
+    clears: Number(d.clears) || 0,
+    avgTime: Number(d.avgTime || 0)
+  };
+
   } catch (e) {
     // 壊れていたら初期化
     return { score: 0, time: 0, clears: 0 };
@@ -155,7 +157,6 @@ function saveAttackData(key, data){
     time: Math.max(0, Number(data.time) || 0),
     clears: Math.max(0, Number(data.clears) || 0)
   };
-
   localStorage.setItem(key, JSON.stringify(safe));
 }
 
@@ -322,11 +323,11 @@ function getSelectedNumbers(){
 
 function bestKey(){ 
   const info = getSelectedGenInfo();
-  return `pokemon_best_${modeSelect.value}_${limit}_${info.name}`;
+  return `pokemon_best_${ruleSelect.value}_${modeSelect.value}_${limit}_${info.name}`;
 }
 function attackKey(){
   const info = getSelectedGenInfo();
-  return `pokemon_attack_${modeSelect.value}_${info.name}`;
+  return `pokemon_attack_${ruleSelect.value}_${modeSelect.value}_${info.name}`;
 }
 
 // JSON読み込み
@@ -367,83 +368,45 @@ function resetAllTimeAttackIfGenAdded() {
 
 function updateBest(){
 
-  // ===== モード👑表示更新 =====
-[...modeSelect.options].forEach(opt => {
-  const baseText =
-    opt.value === "num2poke"
-      ? "番号→ポケモン"
-      : "ポケモン→番号";
-
-  const crowned = isAllGenClearedForMode(opt.value);
-
-  opt.textContent = baseText + (crowned ? " 👑" : "");
-});
-
-  // ===== ルール👑表示更新 =====
-  [...ruleSelect.options].forEach(opt => {
-    if (opt.value === "timeattack") {
-      opt.textContent =
-        "タイムアタック" + (isTimeAttackMaster() ? " 👑" : "");
-    }
-    else {
-      opt.textContent = "エンドレス";
-    }
+  // ルール切り替え後は always モード👑更新
+  [...modeSelect.options].forEach(opt => {
+    const baseText = opt.value === "num2poke" ? "番号→ポケモン" : "ポケモン→番号";
+    const crowned = isAllGenClearedForMode(opt.value);
+    opt.textContent = baseText + (crowned ? " 👑" : "");
   });
-  
+
+  // ===== エンドレスとタイムアタックで分ける =====
   const rule = ruleSelect.value;
-  
-  const {allChecked} = getSelectedNumbers();
 
-// エンドレスは「全て」以外非表示
-if (ruleSelect.value === "endless" && !allChecked) {
-  bestContainer.style.display = "none";
-  return;
-}
-
-// タイムアタックは常に表示
-bestContainer.style.display = "block";
-  
-  // ===== エンドレス =====
-  if (ruleSelect.value === "endless") {
-    document.getElementById("bestTitle").textContent =
-      "この時間の最高記録（1位～3位）";
-
+  if(rule === "endless"){
+    // エンドレスの場合は bestKey() を使う
     const bests = JSON.parse(localStorage.getItem(bestKey())||"[0,0,0]");
-    document.getElementById("bestBody").textContent =
-      bests.join(" / ");
+    document.getElementById("bestTitle").textContent = "この時間の最高記録（1位～3位）";
+    document.getElementById("bestBody").textContent = bests.join(" / ");
+    bestContainer.style.display = "block";
     return;
   }
 
-  // ===== タイムアタック =====
-  const info = getSelectedGenInfo();
-
-  // タイムアタックのリザルト表示
-  const key = attackKey();
-  // 読み込み（回復）
+  // タイムアタックの場合
+  const key = attackKey();  // attackKey() を使う
   const data = loadAttackData(key);
 
-  // 👑はクリア済みのみ
+  const info = getSelectedGenInfo();
   const crown = data.clears > 0 ? " 👑" :"";
-  document.getElementById("bestTitle").textContent =
-    `${info.name}の最高記録${crown}`;
+  document.getElementById("bestTitle").textContent = `${info.name}の最高記録${crown}`;
 
-  // 表示本文を組み立てる
   let body = `スコア：${data.score}/${info.max}`;
-
-  // 1回以上クリアしている場合のみ追加
-  if (data.clears > 0) {
-  body += `
-  タイム：${formatHMS_Result(data.time)}
-  クリア回数：${data.clears}`;
-
-  // 平均回答時間（秒）
-  const avgTime = data.score ? (data.time / data.score).toFixed(2) : "0.00";
-  body += `\n平均回答時間：${avgTime}秒`;
-}
-
+  if(data.clears>0){
+    body += `
+タイム：${formatHMS_Result(data.time)}
+平均回答時間：${data.avgTime.toFixed(2)}秒
+クリア回数：${data.clears}`;
+  }
 
   document.getElementById("bestBody").innerText = body;
+  bestContainer.style.display = "block";
 }
+
 
 // 世代チェックトグル
 genCheckboxes.forEach(cb => cb.addEventListener("change", () => {
@@ -613,86 +576,69 @@ function gameOver(reason){
   clearInterval(attackTimer);
 
   const {allChecked} = getSelectedNumbers();
-/* ===== エンドレス最高記録 ===== */
-  let bests=[0,0,0];
-  if(allChecked){
-    bests = JSON.parse(localStorage.getItem(bestKey())||"[0,0,0]");
-    if(score>bests[0]){bests=[score,bests[0],bests[1]];}
-    else if(score>bests[1]){bests=[bests[0],score,bests[1]];}
-    else if(score>bests[2]){bests[2]=score;}
-    localStorage.setItem(bestKey(), JSON.stringify(bests));
-  }
-
-  /* ===== タイムアタック記録 ===== */
+/* ===== タイムアタック記録 ===== */
+// タイムアタック記録
 if (ruleSelect.value === "timeattack") {
   const key = attackKey();
   const prev = loadAttackData(key);
 
-  // 「全問クリア」のときだけ true
   const cleared = reason === "🎉 全問クリア！";
-
-  // スコアは常に最大値
   const newScore = Math.max(prev.score, score);
 
-  // ★ NEW RECORD 判定をリセット
-isNewRecord = false;
-
-// ★ クリアしたときだけタイム更新 ★
-let newTime = prev.time;
-
-if (cleared) {
-  // 初クリア または 自己ベスト更新
-  if (prev.time === 0 || elapsed < prev.time) {
-    newTime = elapsed;
-    isNewRecord = true; // ★ NEW RECORD！
+  let newTime = prev.time;
+  if (cleared) {
+    if (prev.time === 0 || elapsed < prev.time) {
+      newTime = elapsed;
+      isNewRecord = true;
+    }
   }
-}
-  
-  // クリア回数もクリア時のみ増やす
+
   const newClears = prev.clears + (cleared ? 1 : 0);
+
+  // 平均回答時間を追加
+  const newAvgTime = score > 0 ? elapsed / score : 0;
 
   saveAttackData(key, {
     score: newScore,
     time: newTime,
-    clears: newClears
+    clears: newClears,
+    avgTime: newAvgTime
   });
 }
-  /* ===== 表示処理 ===== */
-const correctAnswer = modeSelect.value==="num2poke"
-  ? pokemon[currentNumber]
-  : currentNumber;
 
+
+/* ===== 表示処理 ===== */
 let msg = "";
+const correctAnswer = modeSelect.value==="num2poke" ? pokemon[currentNumber] : currentNumber;
 
-if (reason === "🎉 全問クリア！") {
+if(reason === "🎉 全問クリア！"){
   const info = getSelectedGenInfo();
   const masterName = info.name === "全て" ? "図鑑番号" : info.name;
 
-  msg =
-`クリア！おめでとう！
+  // 平均回答時間を計算（秒、小数第2位）
+  const avgTime = score > 0 ? (elapsed / score).toFixed(2) : "0.00";
+
+  msg = `クリア！おめでとう！
 あなたは${masterName}マスター！
-クリアタイム：${formatHMS_Result(elapsed)}`;
+クリアタイム：${formatHMS_Result(elapsed)}
+平均回答時間：約${avgTime}秒/問`;
 
-// 平均回答時間
-const avgTime = score ? (elapsed / score).toFixed(2) : "0.00";
-msg += `\n平均回答時間：${avgTime}秒`;
+  if(isNewRecord){
+    msg += "\n🎉 NEW RECORD！";
+  }
+} else {
+  // 不正解／時間切れ
+  const avgTime = score > 0 ? (elapsed / score).toFixed(2) : "0.00";
 
-// NEW RECORD 表示
-if (isNewRecord) {
-  msg += "\n🎉 NEW RECORD！";
-}
-}
-else {
-  msg = reason + "\nスコア：" + score +
-        "\n答えは「" + correctAnswer + "」";
+  msg = reason + `\nスコア：${score}` +
+        `\n答えは「${correctAnswer}」`;
 
-  if (ruleSelect.value === "timeattack") {
-    msg += "\nタイム：" + formatHMS_Result(elapsed);
-    // 平均回答時間
-    const avgTime = score ? (elapsed / score).toFixed(2) : "0.00";
-    msg += `\n平均回答時間：${avgTime}秒`;
+  if(ruleSelect.value === "timeattack"){
+    msg += `\nタイム：${formatHMS_Result(elapsed)}` +
+           `\n平均回答時間：約${avgTime}秒/問`;
   }
 }
+
 
 
   // ★ エンドレス ＆ 全て選択 ＆ ゲームオーバー時のみ表示
