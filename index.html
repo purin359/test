@@ -69,6 +69,12 @@ select, input, button { width:100%; font-size:1.1em; padding:10px; margin:8px 0;
   <div id="bestBody"></div>
 </div>
 
+  <hr>
+
+<button onclick="exportRecords()">記録をエクスポート</button>
+<input type="file" id="importFile" accept=".json" onchange="importRecords(event)">
+
+
 <div id="message"></div>
 <button onclick="startGame()">ゲーム開始</button>
 
@@ -683,6 +689,66 @@ if (
   messageDiv.textContent =
     "⚠ 設定が変更されたためゲームを終了しました";
 }
+
+  // ================================
+// 記録エクスポート
+// ================================
+function exportRecords(){
+  const data = {};
+  for(let i=0;i<localStorage.length;i++){
+    const key = localStorage.key(i);
+    if(key.startsWith("pokemon_")){
+      data[key] = localStorage.getItem(key);
+    }
+  }
+
+  const blob = new Blob(
+    [JSON.stringify(data, null, 2)],
+    { type: "application/json" }
+  );
+
+  const a = document.createElement("a");
+  const date = new Date().toISOString().slice(0,10);
+  a.href = URL.createObjectURL(blob);
+  a.download = `pokemon_backup_${date}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+  alert("記録を保存しました！");
+}
+
+// ================================
+// 記録インポート
+// ================================
+function importRecords(e){
+  const file = e.target.files[0];
+  if(!file) return;
+
+  if(!confirm("現在の記録を上書きします。よろしいですか？")){
+    e.target.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+
+      Object.keys(data).forEach(key=>{
+        if(key.startsWith("pokemon_")){
+          localStorage.setItem(key, data[key]);
+        }
+      });
+
+      alert("記録を復元しました！");
+      updateBest();
+    }catch{
+      alert("ファイルが不正です");
+    }
+  };
+  reader.readAsText(file);
+}
+
 
 </script>
 </body>
