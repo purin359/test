@@ -310,8 +310,11 @@ function bestKey(){
 }
 function attackKey(){
   const info = getSelectedGenInfo();
-  return `pokemon_attack_${modeSelect.value}_${info.name}`;
+
+  // ★ タイムアタック専用キーにする
+  return `pokemon_attack_time_${modeSelect.value}_${info.name}`;
 }
+
 
 // JSON読み込み
 fetch("pokemon.json").then(r=>r.json()).then(data=>{
@@ -685,3 +688,4 @@ if (
 </script>
 </body>
 </html>
+
